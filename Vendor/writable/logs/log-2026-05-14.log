@@ -1,0 +1,404 @@
+CRITICAL - 2026-05-14 10:22:16 --> Error: Call to undefined method App\Controllers\Content\CommunityContent::ensureCategoryTable()
+[Method: GET, Route: Content/Community/Index]
+in APPPATH\Controllers\Content\CommunityContent.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Content\CommunityContent->index()
+ 2 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Content\CommunityContent))
+ 3 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+ 7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 11:31:45 --> Error connecting to the database: ErrorException: pg_connect(): Unable to connect to PostgreSQL server: could not connect to server: Connection timed out (0x0000274C/10060)
+	Is the server running on host &quot;kb330480-001.ca.clouddb.ovh.net&quot; (54.39.135.10) and accepting
+	TCP/IP connections on port 35866? in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\Postgre\Connection.php:78
+Stack trace:
+#0 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler(2, 'pg_connect(): U...', 'P:\\PortableApps...', 78)
+#1 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\Postgre\Connection.php(78): pg_connect('host=kb330480-0...')
+#2 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(555): CodeIgniter\Database\Postgre\Connection->connect(false)
+#3 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#4 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1706): CodeIgniter\Database\BaseConnection->query('SELECT "table_n...')
+#5 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1726): CodeIgniter\Database\BaseConnection->listTables()
+#6 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(100): CodeIgniter\Database\BaseConnection->tableExists('module_settings')
+#7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(48): App\Libraries\ModuleSettings->ensureModuleSettings()
+#8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(67): App\Libraries\ModuleSettings->contentModules()
+#9 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebAnalytics.php(26): App\Libraries\ModuleSettings->isEnabled('web_analytics')
+#10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\BaseController.php(51): App\Libraries\WebAnalytics->recordRequest(Object(CodeIgniter\HTTP\IncomingRequest))
+#11 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(922): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+#12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(488): CodeIgniter\CodeIgniter->createController()
+#13 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#14 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#15 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#16 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#17 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps...')
+#18 {main}
+ERROR - 2026-05-14 12:08:48 --> pg_query(): Query failed: ERROR:  relation &quot;ps_web_settings&quot; does not exist
+LINE 2: FROM &quot;ps_web_settings&quot;
+             ^
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = \'web_name\'')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = \'web_name\'')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1733): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = :setting_key:', [...], false)
+ 4 APPPATH\Libraries\WebSettings.php(103): CodeIgniter\Database\BaseBuilder->countAllResults()
+ 5 APPPATH\Libraries\WebSettings.php(35): App\Libraries\WebSettings->ensureTable()
+ 6 APPPATH\Views\layouts\site.php(258): App\Libraries\WebSettings->homeSettings()
+ 7 SYSTEMPATH\View\View.php(240): include('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\app\\Views\\layouts\\site.php')
+ 8 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 9 SYSTEMPATH\View\View.php(256): CodeIgniter\View\View->render('layouts/site', [], true)
+10 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('install/uninstall_progress', [], true)
+11 APPPATH\Controllers\Install.php(589): view('install/uninstall_progress', [...])
+12 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+13 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+14 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+15 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+16 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+17 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+18 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:08:48 --> pg_query(): Query failed: ERROR:  relation &quot;ps_module_settings&quot; does not exist
+LINE 2: FROM &quot;ps_module_settings&quot;
+             ^
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('SELECT "module_key"
+FROM "ps_module_settings"')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT "module_key"
+FROM "ps_module_settings"')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT "module_key"
+FROM "ps_module_settings"', [], false)
+ 4 APPPATH\Libraries\ModuleSettings.php(111): CodeIgniter\Database\BaseBuilder->get()
+ 5 APPPATH\Libraries\ModuleSettings.php(48): App\Libraries\ModuleSettings->ensureModuleSettings()
+ 6 APPPATH\Libraries\ModuleSettings.php(67): App\Libraries\ModuleSettings->contentModules()
+ 7 APPPATH\Views\layouts\site.php(276): App\Libraries\ModuleSettings->isEnabled('content_public')
+ 8 SYSTEMPATH\View\View.php(240): include('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\app\\Views\\layouts\\site.php')
+ 9 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+10 SYSTEMPATH\View\View.php(256): CodeIgniter\View\View->render('layouts/site', [], true)
+11 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('install/uninstall_progress', [], true)
+12 APPPATH\Controllers\Install.php(589): view('install/uninstall_progress', [...])
+13 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+14 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+15 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+16 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+17 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+18 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+19 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:08:56 --> Error connecting to the database: mysqli_sql_exception: Access denied for user ''@'localhost' (using password: NO) in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('localhost', '', Object(SensitiveParameterValue), '', 3306, '', 0)
+#1 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1706): CodeIgniter\Database\BaseConnection->query('SHOW TABLES FRO...')
+#4 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1726): CodeIgniter\Database\BaseConnection->listTables()
+#5 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(100): CodeIgniter\Database\BaseConnection->tableExists('module_settings')
+#6 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(48): App\Libraries\ModuleSettings->ensureModuleSettings()
+#7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(67): App\Libraries\ModuleSettings->contentModules()
+#8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebAnalytics.php(26): App\Libraries\ModuleSettings->isEnabled('web_analytics')
+#9 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\BaseController.php(51): App\Libraries\WebAnalytics->recordRequest(Object(CodeIgniter\HTTP\IncomingRequest))
+#10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(922): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+#11 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(488): CodeIgniter\CodeIgniter->createController()
+#12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#13 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#14 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#15 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#16 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps...')
+#17 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: Access denied for user ''@'localhost' (using password: NO) in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1706): CodeIgniter\Database\BaseConnection->query('SHOW TABLES FRO...')
+#3 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1726): CodeIgniter\Database\BaseConnection->listTables()
+#4 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(100): CodeIgniter\Database\BaseConnection->tableExists('module_settings')
+#5 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(48): App\Libraries\ModuleSettings->ensureModuleSettings()
+#6 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(67): App\Libraries\ModuleSettings->contentModules()
+#7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebAnalytics.php(26): App\Libraries\ModuleSettings->isEnabled('web_analytics')
+#8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\BaseController.php(51): App\Libraries\WebAnalytics->recordRequest(Object(CodeIgniter\HTTP\IncomingRequest))
+#9 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(922): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+#10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(488): CodeIgniter\CodeIgniter->createController()
+#11 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#13 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#14 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#15 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps...')
+#16 {main}
+ERROR - 2026-05-14 12:33:19 --> pg_query(): Query failed: ERROR:  relation &quot;ps_web_settings&quot; does not exist
+LINE 2: FROM &quot;ps_web_settings&quot;
+             ^
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = \'web_name\'')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = \'web_name\'')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1733): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = :setting_key:', [...], false)
+ 4 APPPATH\Libraries\WebSettings.php(103): CodeIgniter\Database\BaseBuilder->countAllResults()
+ 5 APPPATH\Libraries\WebSettings.php(35): App\Libraries\WebSettings->ensureTable()
+ 6 APPPATH\Views\layouts\site.php(258): App\Libraries\WebSettings->homeSettings()
+ 7 SYSTEMPATH\View\View.php(240): include('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\app\\Views\\layouts\\site.php')
+ 8 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 9 SYSTEMPATH\View\View.php(256): CodeIgniter\View\View->render('layouts/site', [], true)
+10 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('install/uninstall_progress', [], true)
+11 APPPATH\Controllers\Install.php(589): view('install/uninstall_progress', [...])
+12 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+13 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+14 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+15 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+16 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+17 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+18 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:33:19 --> pg_query(): Query failed: ERROR:  relation &quot;ps_module_settings&quot; does not exist
+LINE 2: FROM &quot;ps_module_settings&quot;
+             ^
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('SELECT "module_key"
+FROM "ps_module_settings"')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT "module_key"
+FROM "ps_module_settings"')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT "module_key"
+FROM "ps_module_settings"', [], false)
+ 4 APPPATH\Libraries\ModuleSettings.php(111): CodeIgniter\Database\BaseBuilder->get()
+ 5 APPPATH\Libraries\ModuleSettings.php(48): App\Libraries\ModuleSettings->ensureModuleSettings()
+ 6 APPPATH\Libraries\ModuleSettings.php(67): App\Libraries\ModuleSettings->contentModules()
+ 7 APPPATH\Views\layouts\site.php(276): App\Libraries\ModuleSettings->isEnabled('content_public')
+ 8 SYSTEMPATH\View\View.php(240): include('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\app\\Views\\layouts\\site.php')
+ 9 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+10 SYSTEMPATH\View\View.php(256): CodeIgniter\View\View->render('layouts/site', [], true)
+11 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('install/uninstall_progress', [], true)
+12 APPPATH\Controllers\Install.php(589): view('install/uninstall_progress', [...])
+13 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+14 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+15 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+16 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+17 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+18 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+19 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:34:49 --> pg_query(): Query failed: ERROR:  duplicate key value violates unique constraint &quot;ps_web_analytics_pkey&quot;
+DETAIL:  Key (id)=(1) already exists.
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (\'/Product.Store/index.php\', \'GET\', 1, \'::1\', \'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\', \'http://localhost/Product.Store/index.php/install/complete\', \'2026-05-14 12:34:49\')')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (\'/Product.Store/index.php\', \'GET\', 1, \'::1\', \'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\', \'http://localhost/Product.Store/index.php/install/complete\', \'2026-05-14 12:34:49\')')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (:route_path:, :request_method:, :member_user_id:, :ip_address:, :user_agent:, :referrer:, :occurred_at:)', [...], false)
+ 4 APPPATH\Libraries\WebAnalytics.php(32): CodeIgniter\Database\BaseBuilder->insert([...])
+ 5 APPPATH\Controllers\BaseController.php(51): App\Libraries\WebAnalytics->recordRequest(Object(CodeIgniter\HTTP\IncomingRequest))
+ 6 SYSTEMPATH\CodeIgniter.php(922): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+ 7 SYSTEMPATH\CodeIgniter.php(488): CodeIgniter\CodeIgniter->createController()
+ 8 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:35:01 --> pg_query(): Query failed: ERROR:  duplicate key value violates unique constraint &quot;ps_web_analytics_pkey&quot;
+DETAIL:  Key (id)=(2) already exists.
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (\'/Product.Store/index.php/DashBoard/Index\', \'GET\', 1, \'::1\', \'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\', \'http://localhost/Product.Store/index.php/\', \'2026-05-14 12:35:01\')')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (\'/Product.Store/index.php/DashBoard/Index\', \'GET\', 1, \'::1\', \'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\', \'http://localhost/Product.Store/index.php/\', \'2026-05-14 12:35:01\')')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (:route_path:, :request_method:, :member_user_id:, :ip_address:, :user_agent:, :referrer:, :occurred_at:)', [...], false)
+ 4 APPPATH\Libraries\WebAnalytics.php(32): CodeIgniter\Database\BaseBuilder->insert([...])
+ 5 APPPATH\Controllers\BaseController.php(51): App\Libraries\WebAnalytics->recordRequest(Object(CodeIgniter\HTTP\IncomingRequest))
+ 6 SYSTEMPATH\CodeIgniter.php(922): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+ 7 SYSTEMPATH\CodeIgniter.php(488): CodeIgniter\CodeIgniter->createController()
+ 8 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:35:12 --> pg_query(): Query failed: ERROR:  duplicate key value violates unique constraint &quot;ps_web_analytics_pkey&quot;
+DETAIL:  Key (id)=(3) already exists.
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (\'/Product.Store/index.php/install/uninstall\', \'GET\', 1, \'::1\', \'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\', \'http://localhost/Product.Store/index.php/DashBoard/Index\', \'2026-05-14 12:35:12\')')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (\'/Product.Store/index.php/install/uninstall\', \'GET\', 1, \'::1\', \'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\', \'http://localhost/Product.Store/index.php/DashBoard/Index\', \'2026-05-14 12:35:12\')')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (:route_path:, :request_method:, :member_user_id:, :ip_address:, :user_agent:, :referrer:, :occurred_at:)', [...], false)
+ 4 APPPATH\Libraries\WebAnalytics.php(32): CodeIgniter\Database\BaseBuilder->insert([...])
+ 5 APPPATH\Controllers\BaseController.php(51): App\Libraries\WebAnalytics->recordRequest(Object(CodeIgniter\HTTP\IncomingRequest))
+ 6 SYSTEMPATH\CodeIgniter.php(922): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+ 7 SYSTEMPATH\CodeIgniter.php(488): CodeIgniter\CodeIgniter->createController()
+ 8 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:35:22 --> pg_query(): Query failed: ERROR:  duplicate key value violates unique constraint &quot;ps_web_analytics_pkey&quot;
+DETAIL:  Key (id)=(4) already exists.
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (\'/Product.Store/index.php/install/uninstall/confirm\', \'POST\', 1, \'::1\', \'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\', \'http://localhost/Product.Store/index.php/install/uninstall\', \'2026-05-14 12:35:22\')')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (\'/Product.Store/index.php/install/uninstall/confirm\', \'POST\', 1, \'::1\', \'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\', \'http://localhost/Product.Store/index.php/install/uninstall\', \'2026-05-14 12:35:22\')')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (:route_path:, :request_method:, :member_user_id:, :ip_address:, :user_agent:, :referrer:, :occurred_at:)', [...], false)
+ 4 APPPATH\Libraries\WebAnalytics.php(32): CodeIgniter\Database\BaseBuilder->insert([...])
+ 5 APPPATH\Controllers\BaseController.php(51): App\Libraries\WebAnalytics->recordRequest(Object(CodeIgniter\HTTP\IncomingRequest))
+ 6 SYSTEMPATH\CodeIgniter.php(922): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+ 7 SYSTEMPATH\CodeIgniter.php(488): CodeIgniter\CodeIgniter->createController()
+ 8 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:35:24 --> pg_query(): Query failed: ERROR:  duplicate key value violates unique constraint &quot;ps_web_analytics_pkey&quot;
+DETAIL:  Key (id)=(5) already exists.
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (\'/Product.Store/index.php/install/uninstall/next\', \'GET\', 1, \'::1\', \'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\', \'http://localhost/Product.Store/index.php/install/uninstall\', \'2026-05-14 12:35:23\')')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (\'/Product.Store/index.php/install/uninstall/next\', \'GET\', 1, \'::1\', \'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\', \'http://localhost/Product.Store/index.php/install/uninstall\', \'2026-05-14 12:35:23\')')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO "ps_web_analytics" ("route_path", "request_method", "member_user_id", "ip_address", "user_agent", "referrer", "occurred_at") VALUES (:route_path:, :request_method:, :member_user_id:, :ip_address:, :user_agent:, :referrer:, :occurred_at:)', [...], false)
+ 4 APPPATH\Libraries\WebAnalytics.php(32): CodeIgniter\Database\BaseBuilder->insert([...])
+ 5 APPPATH\Controllers\BaseController.php(51): App\Libraries\WebAnalytics->recordRequest(Object(CodeIgniter\HTTP\IncomingRequest))
+ 6 SYSTEMPATH\CodeIgniter.php(922): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+ 7 SYSTEMPATH\CodeIgniter.php(488): CodeIgniter\CodeIgniter->createController()
+ 8 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:35:25 --> pg_query(): Query failed: ERROR:  relation &quot;ps_web_settings&quot; does not exist
+LINE 2: FROM &quot;ps_web_settings&quot;
+             ^
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = \'web_name\'')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = \'web_name\'')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1733): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = :setting_key:', [...], false)
+ 4 APPPATH\Libraries\WebSettings.php(103): CodeIgniter\Database\BaseBuilder->countAllResults()
+ 5 APPPATH\Libraries\WebSettings.php(35): App\Libraries\WebSettings->ensureTable()
+ 6 APPPATH\Views\layouts\site.php(258): App\Libraries\WebSettings->homeSettings()
+ 7 SYSTEMPATH\View\View.php(240): include('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\app\\Views\\layouts\\site.php')
+ 8 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 9 SYSTEMPATH\View\View.php(256): CodeIgniter\View\View->render('layouts/site', [], true)
+10 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('install/uninstall_progress', [], true)
+11 APPPATH\Controllers\Install.php(589): view('install/uninstall_progress', [...])
+12 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+13 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+14 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+15 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+16 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+17 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+18 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:35:25 --> pg_query(): Query failed: ERROR:  relation &quot;ps_module_settings&quot; does not exist
+LINE 2: FROM &quot;ps_module_settings&quot;
+             ^
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('SELECT "module_key"
+FROM "ps_module_settings"')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT "module_key"
+FROM "ps_module_settings"')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT "module_key"
+FROM "ps_module_settings"', [], false)
+ 4 APPPATH\Libraries\ModuleSettings.php(111): CodeIgniter\Database\BaseBuilder->get()
+ 5 APPPATH\Libraries\ModuleSettings.php(48): App\Libraries\ModuleSettings->ensureModuleSettings()
+ 6 APPPATH\Libraries\ModuleSettings.php(67): App\Libraries\ModuleSettings->contentModules()
+ 7 APPPATH\Views\layouts\site.php(276): App\Libraries\ModuleSettings->isEnabled('content_public')
+ 8 SYSTEMPATH\View\View.php(240): include('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\app\\Views\\layouts\\site.php')
+ 9 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+10 SYSTEMPATH\View\View.php(256): CodeIgniter\View\View->render('layouts/site', [], true)
+11 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('install/uninstall_progress', [], true)
+12 APPPATH\Controllers\Install.php(589): view('install/uninstall_progress', [...])
+13 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+14 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+15 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+16 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+17 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+18 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+19 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:35:50 --> pg_query(): Query failed: ERROR:  relation &quot;ps_web_settings&quot; does not exist
+LINE 2: FROM &quot;ps_web_settings&quot;
+             ^
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = \'web_name\'')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = \'web_name\'')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1733): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*) AS "numrows"
+FROM "ps_web_settings"
+WHERE "setting_key" = :setting_key:', [...], false)
+ 4 APPPATH\Libraries\WebSettings.php(103): CodeIgniter\Database\BaseBuilder->countAllResults()
+ 5 APPPATH\Libraries\WebSettings.php(35): App\Libraries\WebSettings->ensureTable()
+ 6 APPPATH\Views\layouts\site.php(258): App\Libraries\WebSettings->homeSettings()
+ 7 SYSTEMPATH\View\View.php(240): include('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\app\\Views\\layouts\\site.php')
+ 8 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 9 SYSTEMPATH\View\View.php(256): CodeIgniter\View\View->render('layouts/site', [], true)
+10 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('install/uninstall_progress', [], true)
+11 APPPATH\Controllers\Install.php(589): view('install/uninstall_progress', [...])
+12 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+13 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+14 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+15 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+16 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+17 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+18 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:35:50 --> pg_query(): Query failed: ERROR:  relation &quot;ps_module_settings&quot; does not exist
+LINE 2: FROM &quot;ps_module_settings&quot;
+             ^
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('SELECT "module_key"
+FROM "ps_module_settings"')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT "module_key"
+FROM "ps_module_settings"')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT "module_key"
+FROM "ps_module_settings"', [], false)
+ 4 APPPATH\Libraries\ModuleSettings.php(111): CodeIgniter\Database\BaseBuilder->get()
+ 5 APPPATH\Libraries\ModuleSettings.php(48): App\Libraries\ModuleSettings->ensureModuleSettings()
+ 6 APPPATH\Libraries\ModuleSettings.php(67): App\Libraries\ModuleSettings->contentModules()
+ 7 APPPATH\Views\layouts\site.php(276): App\Libraries\ModuleSettings->isEnabled('content_public')
+ 8 SYSTEMPATH\View\View.php(240): include('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\app\\Views\\layouts\\site.php')
+ 9 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+10 SYSTEMPATH\View\View.php(256): CodeIgniter\View\View->render('layouts/site', [], true)
+11 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('install/uninstall_progress', [], true)
+12 APPPATH\Controllers\Install.php(589): view('install/uninstall_progress', [...])
+13 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+14 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+15 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+16 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+17 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+18 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+19 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-14 12:35:56 --> Error connecting to the database: mysqli_sql_exception: Access denied for user ''@'localhost' (using password: NO) in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('localhost', '', Object(SensitiveParameterValue), '', 3306, '', 0)
+#1 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1706): CodeIgniter\Database\BaseConnection->query('SHOW TABLES FRO...')
+#4 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1726): CodeIgniter\Database\BaseConnection->listTables()
+#5 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(100): CodeIgniter\Database\BaseConnection->tableExists('module_settings')
+#6 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(48): App\Libraries\ModuleSettings->ensureModuleSettings()
+#7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(67): App\Libraries\ModuleSettings->contentModules()
+#8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebAnalytics.php(26): App\Libraries\ModuleSettings->isEnabled('web_analytics')
+#9 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\BaseController.php(51): App\Libraries\WebAnalytics->recordRequest(Object(CodeIgniter\HTTP\IncomingRequest))
+#10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(922): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+#11 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(488): CodeIgniter\CodeIgniter->createController()
+#12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#13 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#14 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#15 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#16 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps...')
+#17 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: Access denied for user ''@'localhost' (using password: NO) in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1706): CodeIgniter\Database\BaseConnection->query('SHOW TABLES FRO...')
+#3 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1726): CodeIgniter\Database\BaseConnection->listTables()
+#4 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(100): CodeIgniter\Database\BaseConnection->tableExists('module_settings')
+#5 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(48): App\Libraries\ModuleSettings->ensureModuleSettings()
+#6 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(67): App\Libraries\ModuleSettings->contentModules()
+#7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebAnalytics.php(26): App\Libraries\ModuleSettings->isEnabled('web_analytics')
+#8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\BaseController.php(51): App\Libraries\WebAnalytics->recordRequest(Object(CodeIgniter\HTTP\IncomingRequest))
+#9 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(922): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+#10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(488): CodeIgniter\CodeIgniter->createController()
+#11 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#13 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#14 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#15 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps...')
+#16 {main}

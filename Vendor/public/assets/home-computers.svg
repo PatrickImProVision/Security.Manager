@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 260" preserveAspectRatio="none" role="img" aria-labelledby="title desc">
+  <title id="title">Wide computer technology banner</title>
+  <desc id="desc">A bright wide banner with computers, code panels, servers, and network lines.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dff2ff"/>
+      <stop offset=".52" stop-color="#a9d6ff"/>
+      <stop offset="1" stop-color="#d8ffe9"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3d8bfd"/>
+      <stop offset="1" stop-color="#3ecf8e"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="170%">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#22517d" flood-opacity=".22"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="260" fill="url(#bg)"/>
+  <circle cx="1020" cy="38" r="115" fill="#ffffff" opacity=".35"/>
+  <circle cx="745" cy="234" r="130" fill="#ffffff" opacity=".25"/>
+  <circle cx="270" cy="50" r="98" fill="#3d8bfd" opacity=".12"/>
+
+  <path d="M40 190C210 88 310 230 474 134s258-25 386 24 206 24 300-42" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity=".65"/>
+  <path d="M104 72c125 64 222 58 352 18s260-54 420 8 238 70 308 28" fill="none" stroke="#3d8bfd" stroke-width="4" stroke-linecap="round" opacity=".25"/>
+
+  <g filter="url(#shadow)">
+    <rect x="430" y="44" width="330" height="154" rx="18" fill="#eef7ff" stroke="#ffffff" stroke-width="3"/>
+    <rect x="452" y="66" width="286" height="96" rx="8" fill="#102136"/>
+    <rect x="476" y="88" width="96" height="10" rx="5" fill="url(#screen)"/>
+    <rect x="476" y="112" width="200" height="8" rx="4" fill="#8fc7ff"/>
+    <rect x="476" y="132" width="166" height="8" rx="4" fill="#8ef5c1"/>
+    <rect x="658" y="88" width="54" height="54" rx="8" fill="#3d8bfd" opacity=".45"/>
+    <rect x="566" y="198" width="58" height="24" fill="#7fb2f0"/>
+    <rect x="500" y="222" width="190" height="14" rx="7" fill="#d7e8ff"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="810" y="86" width="210" height="94" rx="14" fill="#eef7ff" stroke="#ffffff" stroke-width="3"/>
+    <rect x="828" y="106" width="174" height="44" rx="7" fill="#102136"/>
+    <rect x="850" y="120" width="72" height="7" rx="4" fill="#3ecf8e"/>
+    <rect x="850" y="136" width="118" height="6" rx="3" fill="#8fc7ff"/>
+    <path d="M790 180h250l-24 40H814z" fill="#7fb2f0"/>
+    <rect x="856" y="193" width="126" height="8" rx="4" fill="#102136" opacity=".75"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1060" y="58" width="70" height="136" rx="14" fill="#eef7ff" stroke="#ffffff" stroke-width="3"/>
+    <circle cx="1095" cy="86" r="8" fill="#3ecf8e"/>
+    <rect x="1078" y="112" width="34" height="6" rx="3" fill="#3d8bfd"/>
+    <rect x="1078" y="136" width="34" height="6" rx="3" fill="#3d8bfd"/>
+    <rect x="1078" y="160" width="34" height="6" rx="3" fill="#3d8bfd"/>
+  </g>
+
+  <g opacity=".8">
+    <rect x="90" y="68" width="210" height="92" rx="14" fill="#ffffff" opacity=".72"/>
+    <rect x="112" y="90" width="74" height="9" rx="5" fill="#3d8bfd"/>
+    <rect x="112" y="113" width="148" height="7" rx="4" fill="#7fb2f0"/>
+    <rect x="112" y="134" width="110" height="7" rx="4" fill="#3ecf8e"/>
+    <rect x="138" y="160" width="124" height="12" rx="6" fill="#ffffff" opacity=".8"/>
+  </g>
+</svg>
