@@ -11,6 +11,14 @@ use Throwable;
 
 class Home extends BaseController
 {
+    /**
+     * Short-lived cache for home page COUNT queries (per PHP-FPM worker).
+     * Reduces repeated full-table scans when the site is busy.
+     *
+     * @var array{at: int, key: string, data: array{publicPages: int, communityPosts: int, activeMembers: int}}|null
+     */
+    private static ?array $siteStatsCache = null;
+
     public function index(): string
     {
         $modules = $this->moduleStates();
@@ -132,11 +140,29 @@ class Home extends BaseController
      */
     private function siteStats(array $modules): array
     {
-        return [
+        $cacheKey = ($modules['public'] ? '1' : '0') . ($modules['community'] ? '1' : '0');
+        $now = time();
+        if (
+            self::$siteStatsCache !== null
+            && self::$siteStatsCache['key'] === $cacheKey
+            && ($now - self::$siteStatsCache['at']) < 45
+        ) {
+            return self::$siteStatsCache['data'];
+        }
+
+        $data = [
             'publicPages'    => $modules['public'] ? $this->countRows('public_contents', ['status' => 'published']) : 0,
             'communityPosts' => $modules['community'] ? $this->countRows('community_contents', ['status' => 'published']) : 0,
             'activeMembers'  => $this->countRows('users', ['is_active' => true]),
         ];
+
+        self::$siteStatsCache = [
+            'at'   => $now,
+            'key'  => $cacheKey,
+            'data' => $data,
+        ];
+
+        return $data;
     }
 
     /**

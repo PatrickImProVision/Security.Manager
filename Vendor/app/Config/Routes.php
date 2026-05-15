@@ -32,7 +32,7 @@ $routes->group('Member', ['namespace' => 'App\Controllers\Member'], static funct
 
 $routes->group('Member/User', ['namespace' => 'App\Controllers\Member'], static function (RouteCollection $routes): void {
     $routes->get('MyProfile', 'User::profile');
-    $routes->get('Profile/(:num)', 'User::viewUser/$1');
+    $routes->get('Profile/(:segment)', 'User::viewUser/$1');
     $routes->get('Create', 'User::newUser');
     $routes->post('Create', 'User::createUser');
     $routes->post('Delete/(:num)', 'User::deleteUser/$1');
@@ -111,5 +111,7 @@ $routes->get('DashBoard/SecurityManager/CANG', static fn () => redirect()->to(si
 $routes->get('DashBoard/SecurityManager/CANG/Index', 'DashBoard::cangProfiles');
 $routes->get('DashBoard/SecurityManager/CANG/Edit/(:num)', 'DashBoard::editCangProfile/$1');
 $routes->post('DashBoard/SecurityManager/CANG/Edit/(:num)', 'DashBoard::saveCangProfile/$1');
+$routes->post('DashBoard/SecurityManager/CANG/Preview/(:num)', 'DashBoard::cangPreviewSamples/$1');
+$routes->post('DashBoard/SecurityManager/CANG/Details/(:num)', 'DashBoard::cangProfileDetails/$1');
 
 $routes->get('/', 'Home::index');

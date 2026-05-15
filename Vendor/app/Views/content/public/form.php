@@ -18,13 +18,16 @@ if (! empty($content['published_at']) && strtotime((string) $content['published_
 }
 ?>
 
-<h1><?= $isEdit ? 'Edit Public Content' : 'Create Public Content' ?></h1>
-<p class="lead"><?= $isEdit ? 'Update this public content item.' : 'Create content intended for public visitors.' ?></p>
+<?= view('layouts/_site_header', [
+    'siteHeaderImage' => 'Vendor/public/assets/content-manager-header.png',
+]) ?>
 
 <?= $this->include('member/user/_flash') ?>
 
 <form method="post" action="<?= esc($action) ?>" class="card">
     <?= csrf_field() ?>
+
+    <h2><?= $isEdit ? 'Edit Public Content' : 'Create Public Content' ?></h2>
 
     <label for="title">Title</label>
     <input type="text" name="title" id="title" value="<?= old('title', $titleValue, 'attr') ?>" required maxlength="180">

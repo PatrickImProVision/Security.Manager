@@ -1,4 +1,25 @@
--- Product Store: Security Manager CANG profiles (PostgreSQL). Token __DB_PREFIX__ is replaced at install time (may be empty).
+-- =============================================================================
+-- Product Store: Security Manager — CANG profiles (PostgreSQL)
+-- Token __DB_PREFIX__ is replaced at install time (may be empty).
+--
+-- language_id = CANG selector (metadata in App\Libraries\SecurityCangService):
+--   1  Alphabet_Upper                   type [A-Z]
+--   2  Alphabet_Lower                   type [a-z]
+--   3  Alphabet_Mix                     type [A-Z,a-z]
+--   4  Numeric                            type [0-9]
+--   5  Alphabet_Upper_Num               type [A-Z,0-9]
+--   6  Alphabet_Lower_Num               type [a-z,0-9]
+--   7  Alphabet_Mix_Num                 type [A-Z,a-z,0-9]
+--   8  Alphabet_Mix_Num_SpecialShort      type [A-Z,a-z,0-9,-_]
+--   9  Alphabet_Mix_Num_SpecialFull     type [A-Z,a-z,0-9,@-?]  (display label;
+--        generation pool = A-Z, a-z, 0-9 plus @ # $ % & * - _ = + : ? in PHP)
+--
+-- Character pools for generation: SecurityCangService::charactersForLanguage()
+-- split_by / split_length: optional grouping applied after generation (formatted length <= 128).
+-- Keep INSERT defaults aligned with SecurityCangService::DEFAULT_PROFILES.
+-- Re-run: ON CONFLICT does not update existing rows; change data via app or migration.
+-- =============================================================================
+
 CREATE TABLE IF NOT EXISTS __DB_PREFIX__security_cang_profiles (
   id SERIAL PRIMARY KEY,
   target_key VARCHAR(80) NOT NULL UNIQUE,
@@ -7,6 +28,8 @@ CREATE TABLE IF NOT EXISTS __DB_PREFIX__security_cang_profiles (
   language_id INTEGER NOT NULL DEFAULT 7,
   code_length INTEGER NOT NULL DEFAULT 12,
   generation_mode VARCHAR(20) NOT NULL DEFAULT 'random',
+  split_by VARCHAR(16) NOT NULL DEFAULT '',
+  split_length INTEGER NOT NULL DEFAULT 0,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   sequence_value INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

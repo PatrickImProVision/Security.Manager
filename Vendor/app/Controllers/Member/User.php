@@ -6,6 +6,7 @@ namespace App\Controllers\Member;
 
 use App\Controllers\BaseController;
 use App\Libraries\AppDatabase;
+use App\Libraries\MemberProfileUrls;
 use App\Libraries\ModuleSettings;
 use App\Libraries\RoleService;
 use App\Libraries\SecurityCangService;
@@ -128,7 +129,7 @@ class User extends BaseController
 
         try {
             $db->table('users')->insert([
-                'c_id'              => $security->generateFor(SecurityCangService::USER_URL_ID, 'users'),
+                'c_id'              => $security->generateUserUrlIdentifier('users'),
                 'username'          => (string) $this->request->getPost('username'),
                 'email'             => (string) $this->request->getPost('email'),
                 'password_hash'     => password_hash((string) $this->request->getPost('password'), PASSWORD_DEFAULT),
@@ -148,7 +149,7 @@ class User extends BaseController
 
         return redirect()->to(site_url('Member/User/Login'))->with(
             'message',
-            'Registration saved. Activate using: ' . site_url('Member/User/Activate/' . $activationGuid),
+            'Registration saved. Activate using: ' . MemberProfileUrls::activationUrl($activationGuid),
         );
     }
 
@@ -207,7 +208,7 @@ class User extends BaseController
 
         try {
             $db->table('users')->insert([
-                'c_id'              => $security->generateFor(SecurityCangService::USER_URL_ID, 'users'),
+                'c_id'              => $security->generateUserUrlIdentifier('users'),
                 'username'          => (string) $this->request->getPost('username'),
                 'email'             => (string) $this->request->getPost('email'),
                 'password_hash'     => password_hash((string) $this->request->getPost('password'), PASSWORD_DEFAULT),
@@ -319,6 +320,7 @@ class User extends BaseController
 
     public function activate(string $guid): ResponseInterface|string
     {
+        $guid = MemberProfileUrls::tokenFromPath($guid);
         $db = AppDatabase::connection();
         $user = $db->table('users')->where('activation_guid', $guid)->get()->getRowArray();
         if (! is_array($user)) {
@@ -371,7 +373,7 @@ class User extends BaseController
             'effectiveRoles' => $this->roleService()->effectiveRoleNames((string) ($user['role'] ?? 'user')),
             'backUrl'        => (int) ($current['id'] ?? 0) === (int) ($user['id'] ?? 0)
                 ? site_url('Member/User/MyProfile')
-                : site_url('Member/User/Profile/' . (int) $user['id']),
+                : MemberProfileUrls::publicProfileUrl($user),
             'errors'         => $this->flashErrors(),
         ]);
     }
@@ -452,7 +454,7 @@ class User extends BaseController
 
         $redirectUrl = (int) ($current['id'] ?? 0) === (int) ($user['id'] ?? 0)
             ? site_url('Member/User/MyProfile')
-            : site_url('Member/User/Profile/' . (int) $user['id']);
+            : MemberProfileUrls::publicProfileUrl($user);
 
         return redirect()->to($redirectUrl)->with('message', 'User updated.');
     }
@@ -525,6 +527,7 @@ class User extends BaseController
 
     public function deactivate(string $guid): ResponseInterface|string
     {
+        $guid = MemberProfileUrls::tokenFromPath($guid);
         $current = $this->requireLogin();
         if ($current instanceof ResponseInterface) {
             return $current;
@@ -622,7 +625,7 @@ class User extends BaseController
                 'is_active'   => (bool) ($user['is_active'] ?? false),
                 'profile_initial'   => (string) ($user['profile_initial'] ?? '?'),
                 'profile_image_url' => (string) ($user['profile_image_url'] ?? ''),
-                'view_url'    => site_url('Member/User/Profile/' . $id),
+                'view_url'    => MemberProfileUrls::publicProfileUrl($user),
                 'edit_url'    => site_url('Member/User/Edit/' . $id),
                 'delete_url'  => site_url('Member/User/Delete/' . $id),
                 'assign_url'  => site_url('Member/User/AssignRole'),
@@ -676,14 +679,15 @@ class User extends BaseController
         return redirect()->to(site_url('Member/User/AssignRole'))->with('message', 'Role assigned.');
     }
 
-    public function viewUser(int $id): ResponseInterface|string
+    public function viewUser(string $ref): ResponseInterface|string
     {
         $current = $this->requireLogin();
         if ($current instanceof ResponseInterface) {
             return $current;
         }
 
-        $user = AppDatabase::connection()->table('users')->where('id', $id)->get()->getRowArray();
+        $ref = trim(rawurldecode($ref));
+        $user = $this->findUserByProfileRef($ref);
         if (! is_array($user)) {
             return redirect()->to(site_url('Member/List'))->with('errors', ['user' => 'User not found.']);
         }
@@ -692,6 +696,7 @@ class User extends BaseController
 
         return view('member/user/user_detail', [
             'title'          => 'User Details',
+            'wideLayout'     => true,
             'user'           => $user,
             'current'        => $current,
             'primaryRole'    => $this->roleService()->roleName((string) ($user['role'] ?? 'user')),
@@ -960,7 +965,7 @@ class User extends BaseController
     {
         $builder = AppDatabase::connection()
             ->table('users')
-            ->select('id, username, email, role, profile_image, is_active, created_at, last_login_at')
+            ->select('id, c_id, username, email, role, profile_image, is_active, created_at, last_login_at')
             ->orderBy('username', 'ASC');
 
         $search = trim($search);
@@ -984,6 +989,7 @@ class User extends BaseController
             $row['role_name'] = $this->roleService()->roleName((string) ($row['role'] ?? ''));
             $row['profile_initial'] = strtoupper(substr(trim((string) ($row['username'] ?? '')), 0, 1) ?: '?');
             $row['profile_image_url'] = $this->profileImageUrl((string) ($row['profile_image'] ?? ''));
+            $row['profile_url'] = MemberProfileUrls::publicProfileUrl($row);
             $users[] = $row;
         }
 
@@ -997,7 +1003,7 @@ class User extends BaseController
     {
         $builder = AppDatabase::connection()
             ->table('users')
-            ->select('id, username, email, role, profile_image, is_active, created_at, last_login_at')
+            ->select('id, c_id, username, email, role, profile_image, is_active, created_at, last_login_at')
             ->orderBy('username', 'ASC');
 
         $search = trim($search);
@@ -1019,7 +1025,7 @@ class User extends BaseController
             $row['role_name'] = $this->roleService()->roleName((string) ($row['role'] ?? ''));
             $row['profile_initial'] = strtoupper(substr(trim((string) ($row['username'] ?? '')), 0, 1) ?: '?');
             $row['profile_image_url'] = $this->profileImageUrl((string) ($row['profile_image'] ?? ''));
-            $row['profile_url'] = site_url('Member/User/Profile/' . $userId);
+            $row['profile_url'] = MemberProfileUrls::publicProfileUrl($row);
             $row['message_url'] = '';
             $row['message_disabled'] = '';
             if (! $personalMessagesEnabled) {
@@ -1046,6 +1052,48 @@ class User extends BaseController
         return is_file(rtrim($publicRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $profileImage))
             ? base_url($profileImage)
             : base_url('Vendor/public/' . $profileImage);
+    }
+
+    /**
+     * Resolve a profile URL segment to a user row (numeric {@code id} or {@code c_id} when Security Manager is on).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function findUserByProfileRef(string $ref): ?array
+    {
+        if ($ref === '') {
+            return null;
+        }
+
+        $db = AppDatabase::connection();
+        try {
+            $securityManagerOn = (new ModuleSettings())->isEnabled(ModuleSettings::SECURITY_MANAGER);
+        } catch (\Throwable) {
+            $securityManagerOn = true;
+        }
+
+        if ($securityManagerOn) {
+            $byCid = $db->table('users')->where('c_id', $ref)->get()->getRowArray();
+            if (is_array($byCid)) {
+                return $byCid;
+            }
+        }
+
+        if (ctype_digit($ref)) {
+            $byId = $db->table('users')->where('id', (int) $ref)->get()->getRowArray();
+            if (is_array($byId)) {
+                return $byId;
+            }
+        }
+
+        if (! $securityManagerOn) {
+            $byCid = $db->table('users')->where('c_id', $ref)->get()->getRowArray();
+            if (is_array($byCid)) {
+                return $byCid;
+            }
+        }
+
+        return null;
     }
 
     private function roleService(): RoleService

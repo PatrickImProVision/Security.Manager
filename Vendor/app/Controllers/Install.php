@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Libraries\AppDatabase;
 use App\Libraries\InstallationService;
 use App\Libraries\InstallationState;
+use App\Libraries\SecurityCangService;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Database as DbConfig;
 
@@ -385,9 +386,12 @@ class Install extends BaseController
         }
 
         $db = AppDatabase::connection();
+        $security = new SecurityCangService();
+        $security->ensureCangColumn('users');
 
         try {
             $db->table('users')->insert([
+                'c_id'          => $security->generateUserUrlIdentifier('users'),
                 'username'      => (string) $this->request->getPost('username'),
                 'email'         => (string) $this->request->getPost('email'),
                 'password_hash' => password_hash((string) $this->request->getPost('password'), PASSWORD_DEFAULT),

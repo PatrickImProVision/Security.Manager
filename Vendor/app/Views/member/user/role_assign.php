@@ -76,7 +76,7 @@
                     <button type="submit" class="btn btn-primary" <?= empty($roleOptions) ? 'disabled' : '' ?>>Save Role</button>
                 </form>
                 <div class="user-list-actions">
-                    <a class="btn btn-secondary" href="<?= esc(site_url('Member/User/Profile/' . (int) $user['id'])) ?>">View</a>
+                    <a class="btn btn-secondary" href="<?= esc((string) ($user['profile_url'] ?? site_url('Member/User/Profile/' . (int) ($user['id'] ?? 0)))) ?>">View</a>
                     <a class="btn btn-secondary" href="<?= esc(site_url('Member/User/Edit/' . (int) $user['id'])) ?>">Edit</a>
                     <form method="post" action="<?= esc(site_url('Member/User/Delete/' . (int) $user['id'])) ?>">
                         <?= csrf_field() ?>

@@ -1,12 +1,14 @@
 <?= $this->extend('layouts/site') ?>
 <?= $this->section('main') ?>
-<h1>Delete Public Content</h1>
-<p class="lead">Confirm deletion of this public content item.</p>
+<?= view('layouts/_site_header', [
+    'siteHeaderImage' => 'Vendor/public/assets/content-manager-header.png',
+]) ?>
 
 <?= $this->include('member/user/_flash') ?>
 
 <div class="card prose">
-    <h2><?= esc((string) $content['title']) ?></h2>
+    <h2>Delete Public Content</h2>
+    <p><strong><?= esc((string) $content['title']) ?></strong></p>
     <p>Slug: <code><?= esc((string) $content['slug']) ?></code></p>
     <p>Status: <code><?= esc((string) $content['status']) ?></code></p>
     <?php if (trim((string) ($content['summary'] ?? '')) !== '') : ?>

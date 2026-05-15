@@ -236,9 +236,10 @@ class PublicContent extends BaseController
         }
 
         return view('content/public/delete', [
-            'title'   => 'Delete Public Content',
-            'content' => $content,
-            'errors'  => $this->flashErrors(),
+            'title'      => 'Delete Public Content',
+            'wideLayout' => true,
+            'content'    => $content,
+            'errors'     => $this->flashErrors(),
         ]);
     }
 
@@ -353,11 +354,12 @@ class PublicContent extends BaseController
     private function renderContent(array $content, bool $canManage): string
     {
         return view('content/public/detail', [
-            'title'     => (string) ($content['title'] ?? 'Public Content'),
-            'content'   => $content,
-            'bodyHtml'  => $this->renderedBodyHtml((string) ($content['body'] ?? '')),
-            'canManage' => $canManage,
-            'errors'    => $this->flashErrors(),
+            'title'      => (string) ($content['title'] ?? 'Public Content'),
+            'wideLayout' => true,
+            'content'    => $content,
+            'bodyHtml'   => $this->renderedBodyHtml((string) ($content['body'] ?? '')),
+            'canManage'  => $canManage,
+            'errors'     => $this->flashErrors(),
         ]);
     }
 

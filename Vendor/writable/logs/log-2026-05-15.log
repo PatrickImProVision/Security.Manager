@@ -1,0 +1,52 @@
+CRITICAL - 2026-05-15 05:49:16 --> ParseError: syntax error, unexpected token "<", expecting end of file
+[Method: GET, Route: DashBoard/SecurityManager/CANG/Edit/6]
+in APPPATH\Views\dashboard\security_cang_profile_form.php on line 27.
+ 1 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 2 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('dashboard/security_cang_profile_form', [], true)
+ 3 APPPATH\Controllers\DashBoard.php(165): view('dashboard/security_cang_profile_form', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\DashBoard->editCangProfile(6)
+ 5 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\DashBoard))
+ 6 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+CRITICAL - 2026-05-15 05:49:57 --> ParseError: syntax error, unexpected token "<", expecting end of file
+[Method: GET, Route: DashBoard/SecurityManager/CANG/Edit/6]
+in APPPATH\Views\dashboard\security_cang_profile_form.php on line 27.
+ 1 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 2 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('dashboard/security_cang_profile_form', [], true)
+ 3 APPPATH\Controllers\DashBoard.php(165): view('dashboard/security_cang_profile_form', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\DashBoard->editCangProfile(6)
+ 5 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\DashBoard))
+ 6 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+CRITICAL - 2026-05-15 05:50:37 --> ParseError: syntax error, unexpected token "<", expecting end of file
+[Method: GET, Route: DashBoard/SecurityManager/CANG/Edit/6]
+in APPPATH\Views\dashboard\security_cang_profile_form.php on line 27.
+ 1 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 2 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('dashboard/security_cang_profile_form', [], true)
+ 3 APPPATH\Controllers\DashBoard.php(165): view('dashboard/security_cang_profile_form', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\DashBoard->editCangProfile(6)
+ 5 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\DashBoard))
+ 6 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+CRITICAL - 2026-05-15 05:51:17 --> ParseError: syntax error, unexpected token "<", expecting end of file
+[Method: GET, Route: DashBoard/SecurityManager/CANG/Edit/6]
+in APPPATH\Views\dashboard\security_cang_profile_form.php on line 27.
+ 1 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 2 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('dashboard/security_cang_profile_form', [], true)
+ 3 APPPATH\Controllers\DashBoard.php(165): view('dashboard/security_cang_profile_form', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\DashBoard->editCangProfile(6)
+ 5 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\DashBoard))
+ 6 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')

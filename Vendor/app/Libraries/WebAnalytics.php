@@ -26,21 +26,37 @@ final class WebAnalytics
             if (! (new ModuleSettings())->isEnabled(ModuleSettings::WEB_ANALYTICS)) {
                 return;
             }
-
-            $this->ensureTable();
-
-            AppDatabase::connection()->table('web_analytics')->insert([
-                'route_path'     => $this->routePath($request),
-                'request_method' => strtoupper((string) $request->getMethod()),
-                'member_user_id' => $this->currentUserId(),
-                'ip_address'     => $this->stringLimit($this->requestIp($request), 45),
-                'user_agent'     => $this->stringLimit($this->serverValue($request, 'HTTP_USER_AGENT'), 255),
-                'referrer'       => $this->stringLimit($this->serverValue($request, 'HTTP_REFERER'), 255),
-                'occurred_at'    => date('Y-m-d H:i:s'),
-            ]);
         } catch (Throwable) {
-            // Analytics must never stop the application from rendering.
+            return;
         }
+
+        $payload = [
+            'route_path'     => $this->routePath($request),
+            'request_method' => strtoupper((string) $request->getMethod()),
+            'member_user_id' => $this->currentUserId(),
+            'ip_address'     => $this->stringLimit($this->requestIp($request), 45),
+            'user_agent'     => $this->stringLimit($this->serverValue($request, 'HTTP_USER_AGENT'), 255),
+            'referrer'       => $this->stringLimit($this->serverValue($request, 'HTTP_REFERER'), 255),
+            'occurred_at'    => date('Y-m-d H:i:s'),
+        ];
+
+        // Defer INSERT until after the response is sent so page generation is not blocked on disk I/O.
+        register_shutdown_function(static function () use ($payload): void {
+            try {
+                (new self())->insertRowAfterResponse($payload);
+            } catch (Throwable) {
+                // Analytics must never break shutdown.
+            }
+        });
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function insertRowAfterResponse(array $row): void
+    {
+        $this->ensureTable();
+        AppDatabase::connection()->table('web_analytics')->insert($row);
     }
 
     /**
@@ -65,62 +81,32 @@ final class WebAnalytics
 
         try {
             $this->ensureTable();
-
+            $db = AppDatabase::connection();
+            $table = $this->prefixedAnalyticsTable($db);
+            $driver = (string) ($db->DBDriver ?? '');
             $startDate = (new DateTimeImmutable('today'))->modify('-' . ($days - 1) . ' days');
-            $rows = AppDatabase::connection()
-                ->table('web_analytics')
-                ->select('route_path, member_user_id, ip_address, occurred_at')
-                ->where('occurred_at >=', $startDate->format('Y-m-d 00:00:00'))
-                ->orderBy('occurred_at', 'ASC')
-                ->get()
-                ->getResultArray();
-        } catch (Throwable) {
+            $startSql = $startDate->format('Y-m-d 00:00:00');
+
+            $dailyMap = $this->aggregateDashboardDaily($db, $table, $driver, $startSql);
+            foreach ($summary['daily'] as &$day) {
+                $d = $day['date'];
+                if (isset($dailyMap[$d])) {
+                    $day['views'] = (int) $dailyMap[$d];
+                }
+            }
+            unset($day);
+
+            $totals = $this->aggregateDashboardTotals($db, $table, $driver, $startSql);
+            $summary['totalViews'] = $totals['totalViews'];
+            $summary['registeredViews'] = $totals['registeredViews'];
+            $summary['uniqueVisitors'] = $this->aggregateDistinctVisitors($db, $table, $driver, $startSql);
+            $summary['maxViews'] = max(1, ...array_column($summary['daily'], 'views'));
+            $summary['topPages'] = $this->aggregateTopPages($db, $table, $driver, $startSql, $topLimit);
+
             return $summary;
+        } catch (Throwable) {
+            return $this->emptySummary($days);
         }
-
-        $dailyIndex = [];
-        foreach ($summary['daily'] as $index => $day) {
-            $dailyIndex[$day['date']] = $index;
-        }
-
-        $visitors = [];
-        $topPages = [];
-
-        foreach ($rows as $row) {
-            $date = substr((string) ($row['occurred_at'] ?? ''), 0, 10);
-            if (isset($dailyIndex[$date])) {
-                $summary['daily'][$dailyIndex[$date]]['views']++;
-            }
-
-            $visitorKey = $this->visitorKey($row);
-            if ($visitorKey !== '') {
-                $visitors[$visitorKey] = true;
-            }
-
-            if (is_numeric($row['member_user_id'] ?? null)) {
-                $summary['registeredViews']++;
-            }
-
-            $path = (string) ($row['route_path'] ?? '/');
-            $topPages[$path] = ($topPages[$path] ?? 0) + 1;
-        }
-
-        arsort($topPages);
-
-        $summary['totalViews'] = count($rows);
-        $summary['uniqueVisitors'] = count($visitors);
-        $summary['maxViews'] = max(1, ...array_column($summary['daily'], 'views'));
-        $summary['topPages'] = array_slice(
-            array_map(
-                static fn (string $path, int $views): array => ['path' => $path, 'views' => $views],
-                array_keys($topPages),
-                array_values($topPages),
-            ),
-            0,
-            $topLimit,
-        );
-
-        return $summary;
     }
 
     /**
@@ -134,6 +120,7 @@ final class WebAnalytics
     public function onlineSummary(int $windowMinutes = 10, int $memberLimit = 8): array
     {
         $windowMinutes = max(1, min($windowMinutes, 60));
+        $memberLimit = max(1, min($memberLimit, 50));
         $summary = [
             'windowMinutes' => $windowMinutes,
             'guests'        => 0,
@@ -147,44 +134,58 @@ final class WebAnalytics
 
         try {
             $this->ensureTable();
-
+            $db = AppDatabase::connection();
+            $table = $this->prefixedAnalyticsTable($db);
+            $driver = (string) ($db->DBDriver ?? '');
             $cutoff = (new DateTimeImmutable())->modify('-' . $windowMinutes . ' minutes')->format('Y-m-d H:i:s');
-            $rows = AppDatabase::connection()
-                ->table('web_analytics')
-                ->select('member_user_id, ip_address, occurred_at')
-                ->where('occurred_at >=', $cutoff)
-                ->orderBy('occurred_at', 'DESC')
-                ->get()
-                ->getResultArray();
+
+            $guestsSql = match ($driver) {
+                'Postgre' => "SELECT COUNT(DISTINCT ip_address)::int AS c FROM {$table} WHERE occurred_at >= ? AND (member_user_id IS NULL OR member_user_id = 0) AND ip_address <> ''",
+                default => "SELECT COUNT(DISTINCT ip_address) AS c FROM {$table} WHERE occurred_at >= ? AND (member_user_id IS NULL OR member_user_id = 0) AND ip_address <> ''",
+            };
+            $guestRow = $db->query($guestsSql, [$cutoff])->getRowArray();
+            $summary['guests'] = (int) ($guestRow['c'] ?? 0);
+
+            $membersSql = match ($driver) {
+                'Postgre' => "SELECT COUNT(DISTINCT member_user_id)::int AS c FROM {$table} WHERE occurred_at >= ? AND member_user_id IS NOT NULL AND member_user_id > 0",
+                default => "SELECT COUNT(DISTINCT member_user_id) AS c FROM {$table} WHERE occurred_at >= ? AND member_user_id IS NOT NULL AND member_user_id > 0",
+            };
+            $memRow = $db->query($membersSql, [$cutoff])->getRowArray();
+            $summary['members'] = (int) ($memRow['c'] ?? 0);
+
+            $memberIdsSql = match ($driver) {
+                'Postgre' => "
+                    SELECT member_user_id::int AS id
+                    FROM {$table}
+                    WHERE occurred_at >= ? AND member_user_id IS NOT NULL AND member_user_id > 0
+                    GROUP BY member_user_id
+                    ORDER BY MAX(occurred_at) DESC
+                    LIMIT {$memberLimit}
+                ",
+                default => "
+                    SELECT member_user_id AS id
+                    FROM {$table}
+                    WHERE occurred_at >= ? AND member_user_id IS NOT NULL AND member_user_id > 0
+                    GROUP BY member_user_id
+                    ORDER BY MAX(occurred_at) DESC
+                    LIMIT {$memberLimit}
+                ",
+            };
+            $idRows = $db->query($memberIdsSql, [$cutoff])->getResultArray();
+            $memberIds = [];
+            foreach ($idRows as $row) {
+                $mid = (int) ($row['id'] ?? 0);
+                if ($mid > 0) {
+                    $memberIds[] = $mid;
+                }
+            }
+
+            $summary['memberList'] = $this->onlineMembers($memberIds, $memberLimit);
+
+            return $summary;
         } catch (Throwable) {
             return $summary;
         }
-
-        $guestIps = [];
-        $memberIds = [];
-        $seenMembers = [];
-
-        foreach ($rows as $row) {
-            if (is_numeric($row['member_user_id'] ?? null)) {
-                $memberId = (int) $row['member_user_id'];
-                if ($memberId > 0 && ! isset($seenMembers[$memberId])) {
-                    $seenMembers[$memberId] = true;
-                    $memberIds[] = $memberId;
-                }
-                continue;
-            }
-
-            $ipAddress = (string) ($row['ip_address'] ?? '');
-            if ($ipAddress !== '') {
-                $guestIps[$ipAddress] = true;
-            }
-        }
-
-        $summary['guests'] = count($guestIps);
-        $summary['members'] = count($memberIds);
-        $summary['memberList'] = $this->onlineMembers($memberIds, $memberLimit);
-
-        return $summary;
     }
 
     private function ensureTable(): void
@@ -201,6 +202,142 @@ final class WebAnalytics
         }
 
         self::$ensured = true;
+    }
+
+    private function prefixedAnalyticsTable(BaseConnection $db): string
+    {
+        return $db->protectIdentifiers($db->prefixTable('web_analytics'), true, false, false);
+    }
+
+    /**
+     * @return array<string, int> date Y-m-d => view count
+     */
+    private function aggregateDashboardDaily(BaseConnection $db, string $table, string $driver, string $startSql): array
+    {
+        $sql = match ($driver) {
+            'Postgre' => "
+                SELECT to_char(occurred_at, 'YYYY-MM-DD') AS day_key, COUNT(*)::int AS cnt
+                FROM {$table}
+                WHERE occurred_at >= ?
+                GROUP BY to_char(occurred_at, 'YYYY-MM-DD')
+            ",
+            'SQLite3' => "
+                SELECT strftime('%Y-%m-%d', occurred_at) AS day_key, COUNT(*) AS cnt
+                FROM {$table}
+                WHERE occurred_at >= ?
+                GROUP BY strftime('%Y-%m-%d', occurred_at)
+            ",
+            default => "
+                SELECT DATE(occurred_at) AS day_key, COUNT(*) AS cnt
+                FROM {$table}
+                WHERE occurred_at >= ?
+                GROUP BY DATE(occurred_at)
+            ",
+        };
+
+        $out = [];
+        foreach ($db->query($sql, [$startSql])->getResultArray() as $row) {
+            $k = (string) ($row['day_key'] ?? '');
+            if ($k !== '') {
+                $out[$k] = (int) ($row['cnt'] ?? 0);
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @return array{totalViews: int, registeredViews: int}
+     */
+    private function aggregateDashboardTotals(BaseConnection $db, string $table, string $driver, string $startSql): array
+    {
+        $sumExpr = match ($driver) {
+            'Postgre' => 'COALESCE(SUM(CASE WHEN member_user_id IS NOT NULL AND member_user_id > 0 THEN 1 ELSE 0 END), 0)::int',
+            default => 'SUM(CASE WHEN member_user_id IS NOT NULL AND member_user_id > 0 THEN 1 ELSE 0 END)',
+        };
+
+        $sql = "
+            SELECT COUNT(*) AS total_views, {$sumExpr} AS registered_views
+            FROM {$table}
+            WHERE occurred_at >= ?
+        ";
+
+        $row = $db->query($sql, [$startSql])->getRowArray() ?: [];
+
+        return [
+            'totalViews'      => (int) ($row['total_views'] ?? 0),
+            'registeredViews' => (int) ($row['registered_views'] ?? 0),
+        ];
+    }
+
+    private function aggregateDistinctVisitors(BaseConnection $db, string $table, string $driver, string $startSql): int
+    {
+        $inner = match ($driver) {
+            'Postgre' => "
+                SELECT DISTINCT CASE
+                    WHEN COALESCE(member_user_id, 0) > 0 THEN 'u' || member_user_id::text
+                    ELSE 'i' || COALESCE(ip_address, '')
+                END AS vk
+                FROM {$table}
+                WHERE occurred_at >= ?
+            ",
+            'SQLite3' => "
+                SELECT DISTINCT CASE
+                    WHEN IFNULL(member_user_id, 0) > 0 THEN 'u' || CAST(member_user_id AS TEXT)
+                    ELSE 'i' || IFNULL(ip_address, '')
+                END AS vk
+                FROM {$table}
+                WHERE occurred_at >= ?
+            ",
+            default => "
+                SELECT DISTINCT CASE
+                    WHEN member_user_id IS NOT NULL AND member_user_id > 0 THEN CONCAT('u', CAST(member_user_id AS CHAR))
+                    ELSE CONCAT('i', IFNULL(ip_address, ''))
+                END AS vk
+                FROM {$table}
+                WHERE occurred_at >= ?
+            ",
+        };
+
+        $countWrap = match ($driver) {
+            'Postgre' => "SELECT COUNT(*)::int AS c FROM ({$inner}) t",
+            default => "SELECT COUNT(*) AS c FROM ({$inner}) t",
+        };
+
+        $row = $db->query($countWrap, [$startSql])->getRowArray() ?: [];
+
+        return (int) ($row['c'] ?? 0);
+    }
+
+    /**
+     * @return list<array{path: string, views: int}>
+     */
+    private function aggregateTopPages(BaseConnection $db, string $table, string $driver, string $startSql, int $topLimit): array
+    {
+        $limit = max(1, min(60, $topLimit));
+        $cntAlias = match ($driver) {
+            'Postgre' => 'COUNT(*)::int',
+            default => 'COUNT(*)',
+        };
+
+        $sql = "
+            SELECT route_path, {$cntAlias} AS cnt
+            FROM {$table}
+            WHERE occurred_at >= ?
+            GROUP BY route_path
+            ORDER BY cnt DESC
+            LIMIT {$limit}
+        ";
+
+        $out = [];
+        foreach ($db->query($sql, [$startSql])->getResultArray() as $row) {
+            $out[] = [
+                'path'  => (string) ($row['route_path'] ?? '/'),
+                'views' => (int) ($row['cnt'] ?? 0),
+            ];
+        }
+
+        return $out;
     }
 
     /**
@@ -333,18 +470,6 @@ final class WebAnalytics
     }
 
     /**
-     * @param array<string, mixed> $row
-     */
-    private function visitorKey(array $row): string
-    {
-        if (is_numeric($row['member_user_id'] ?? null)) {
-            return 'user:' . (string) $row['member_user_id'];
-        }
-
-        return (string) ($row['ip_address'] ?? '');
-    }
-
-    /**
      * @param list<int> $memberIds
      *
      * @return list<array<string, mixed>>
@@ -358,7 +483,7 @@ final class WebAnalytics
         try {
             $rows = AppDatabase::connection()
                 ->table('users')
-                ->select('id, username, profile_image, is_active')
+                ->select('id, c_id, username, profile_image, is_active')
                 ->whereIn('id', array_slice($memberIds, 0, max(1, $memberLimit)))
                 ->get()
                 ->getResultArray();
@@ -375,7 +500,7 @@ final class WebAnalytics
                     'username'          => (string) ($row['username'] ?? 'Member'),
                     'profile_initial'   => strtoupper(substr(trim((string) ($row['username'] ?? '')), 0, 1) ?: '?'),
                     'profile_image_url' => $this->profileImageUrl((string) ($row['profile_image'] ?? '')),
-                    'profile_url'       => site_url('Member/User/Profile/' . $userId),
+                    'profile_url'       => MemberProfileUrls::publicProfileUrl($row),
                 ];
             }
         }

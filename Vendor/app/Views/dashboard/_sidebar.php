@@ -16,7 +16,9 @@ $securityManagerEnabled = (bool) ($contentModuleMap['security_manager']['is_enab
 ?>
 
 <aside class="dashboard-sidebar" aria-label="Control Panel navigation">
-    <div class="dashboard-sidebar-heading"><?= $memberCanManageRoles ? 'Control Panel' : 'User Dashboard' ?></div>
+    <div class="dashboard-sidebar-heading">
+        <a href="<?= esc(site_url('DashBoard/Index')) ?>"><?= $memberCanManageRoles ? 'Control Panel' : 'User Dashboard' ?></a>
+    </div>
 
     <?php if (! $memberCanManageRoles) : ?>
         <div class="dashboard-sidebar-type">Account</div>

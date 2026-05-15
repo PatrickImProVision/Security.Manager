@@ -168,6 +168,7 @@ class DashBoard extends BaseController
             'contentModules' => (new ModuleSettings())->contentModules(),
             'profile'        => $profile,
             'languages'      => $service->languages(),
+            'profileDetails' => $service->editorDetails($profile),
         ]);
     }
 
@@ -179,23 +180,161 @@ class DashBoard extends BaseController
         }
 
         $rules = [
-            'language_id'     => 'required|integer|greater_than_equal_to[1]|less_than_equal_to[9]',
+            'language_id'     => 'required|integer|greater_than_equal_to[' . SecurityCangService::cangLanguageMinId() . ']|less_than_equal_to[' . SecurityCangService::cangLanguageMaxId() . ']',
             'code_length'     => 'required|integer|greater_than_equal_to[1]|less_than_equal_to[128]',
             'generation_mode' => 'required|in_list[random,sequential]',
+            'split_by'        => 'permit_empty|string|max_length[' . SecurityCangService::SPLIT_BY_MAX_LENGTH . ']',
+            'split_length'    => 'permit_empty|integer|greater_than_equal_to[0]|less_than_equal_to[' . SecurityCangService::SPLIT_LENGTH_MAX . ']',
         ];
 
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput();
         }
 
-        (new SecurityCangService())->saveProfile($id, [
+        $service = new SecurityCangService();
+        $profile = $service->profile($id);
+        if ($profile === null) {
+            return redirect()->to(site_url('DashBoard/SecurityManager/CANG/Index'))->with('errors', ['cang' => 'CANG profile not found.']);
+        }
+
+        [$codeLength, $splitBy, $splitLength] = $this->cangSettingsFromRequest();
+        $lengthError = $this->cangFormattedLengthError($profile, $codeLength, $splitBy, $splitLength);
+        if ($lengthError !== null) {
+            return redirect()->back()->withInput()->with('errors', ['cang_split' => $lengthError]);
+        }
+
+        $extra = $service->saveProfile($id, [
             'language_id'     => (int) $this->request->getPost('language_id'),
-            'code_length'     => (int) $this->request->getPost('code_length'),
+            'code_length'     => $codeLength,
             'generation_mode' => (string) $this->request->getPost('generation_mode'),
+            'split_by'        => $splitBy,
+            'split_length'    => $splitLength,
             'is_active'       => (bool) $this->request->getPost('is_active'),
         ]);
 
-        return redirect()->to(site_url('DashBoard/SecurityManager/CANG/Index'))->with('message', 'CANG profile updated.');
+        $message = 'CANG profile updated.';
+        if ($extra !== '') {
+            $message .= ' ' . $extra;
+        }
+
+        return redirect()->to(site_url('DashBoard/SecurityManager/CANG/Index'))->with('message', $message);
+    }
+
+    public function cangPreviewSamples(int $id): ResponseInterface
+    {
+        $login = $this->requireLogin();
+        if ($login instanceof ResponseInterface) {
+            return $this->response->setStatusCode(401)->setJSON(['ok' => false, 'error' => 'Log in to continue.']);
+        }
+
+        if (! $this->canManageContentModules()) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false, 'error' => 'Forbidden.']);
+        }
+
+        if (! (new ModuleSettings())->isEnabled(ModuleSettings::SECURITY_MANAGER)) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false, 'error' => 'Security Manager is disabled.']);
+        }
+
+        $rules = [
+            'language_id'     => 'required|integer|greater_than_equal_to[' . SecurityCangService::cangLanguageMinId() . ']|less_than_equal_to[' . SecurityCangService::cangLanguageMaxId() . ']',
+            'code_length'     => 'required|integer|greater_than_equal_to[1]|less_than_equal_to[128]',
+            'generation_mode' => 'required|in_list[random,sequential]',
+            'split_by'        => 'permit_empty|string|max_length[' . SecurityCangService::SPLIT_BY_MAX_LENGTH . ']',
+            'split_length'    => 'permit_empty|integer|greater_than_equal_to[0]|less_than_equal_to[' . SecurityCangService::SPLIT_LENGTH_MAX . ']',
+        ];
+
+        if (! $this->validate($rules)) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'ok'     => false,
+                'error'  => 'Invalid preview parameters.',
+                'errors' => $this->validator->getErrors(),
+            ]);
+        }
+
+        $service = new SecurityCangService();
+        $profile = $service->profile($id);
+        if ($profile === null) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'CANG profile not found.']);
+        }
+
+        [$codeLength, $splitBy, $splitLength] = $this->cangSettingsFromRequest();
+        $mode = (string) $this->request->getPost('generation_mode');
+        $lengthError = $this->cangFormattedLengthError($profile, $codeLength, $splitBy, $splitLength);
+        if ($lengthError !== null) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'ok'    => false,
+                'error' => $lengthError,
+            ]);
+        }
+
+        $languageId = (int) $this->request->getPost('language_id');
+        $sequenceBase = (int) ($profile['sequence_value'] ?? 0);
+
+        $samples = $service->previewSamples($languageId, $codeLength, $mode, 5, $sequenceBase, $splitBy, $splitLength);
+        $note = $mode === 'sequential'
+            ? 'Sequential samples assume the next values after the current sequence counter (nothing is saved until you click Save).'
+            : 'Random samples are illustrative only; each real ID is still generated uniquely when saved.';
+        if ($splitBy !== '' && $splitLength > 0) {
+            $note .= ' Splitting is applied to the generated body only; stored values include these separators.';
+        }
+
+        return $this->response->setJSON([
+            'ok'      => true,
+            'samples' => $samples,
+            'note'    => $note,
+        ]);
+    }
+
+    public function cangProfileDetails(int $id): ResponseInterface
+    {
+        $login = $this->requireLogin();
+        if ($login instanceof ResponseInterface) {
+            return $this->response->setStatusCode(401)->setJSON(['ok' => false, 'error' => 'Log in to continue.']);
+        }
+
+        if (! $this->canManageContentModules()) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false, 'error' => 'Forbidden.']);
+        }
+
+        if (! (new ModuleSettings())->isEnabled(ModuleSettings::SECURITY_MANAGER)) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false, 'error' => 'Security Manager is disabled.']);
+        }
+
+        $rules = [
+            'language_id'     => 'required|integer|greater_than_equal_to[' . SecurityCangService::cangLanguageMinId() . ']|less_than_equal_to[' . SecurityCangService::cangLanguageMaxId() . ']',
+            'code_length'     => 'required|integer|greater_than_equal_to[1]|less_than_equal_to[128]',
+            'generation_mode' => 'required|in_list[random,sequential]',
+            'split_by'        => 'permit_empty|string|max_length[' . SecurityCangService::SPLIT_BY_MAX_LENGTH . ']',
+            'split_length'    => 'permit_empty|integer|greater_than_equal_to[0]|less_than_equal_to[' . SecurityCangService::SPLIT_LENGTH_MAX . ']',
+        ];
+
+        if (! $this->validate($rules)) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'ok'     => false,
+                'error'  => 'Invalid parameters.',
+                'errors' => $this->validator->getErrors(),
+            ]);
+        }
+
+        $service = new SecurityCangService();
+        $profile = $service->profile($id);
+        if ($profile === null) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'CANG profile not found.']);
+        }
+
+        $details = $service->editorDetails($profile, [
+            'language_id'     => (int) $this->request->getPost('language_id'),
+            'code_length'     => (int) $this->request->getPost('code_length'),
+            'generation_mode' => (string) $this->request->getPost('generation_mode'),
+            'split_by'        => (string) $this->request->getPost('split_by'),
+            'split_length'    => (int) $this->request->getPost('split_length'),
+            'is_active'       => (bool) $this->request->getPost('is_active'),
+        ]);
+
+        return $this->response->setJSON([
+            'ok'      => true,
+            'details' => $details,
+        ]);
     }
 
     private function requireManager(string $message): ?ResponseInterface
@@ -238,5 +377,37 @@ class DashBoard extends BaseController
         }
 
         return redirect()->to(site_url('Member/User/Login'))->with('errors', ['auth' => 'Log in to continue.']);
+    }
+
+    /**
+     * @return array{0: int, 1: string, 2: int}
+     */
+    private function cangSettingsFromRequest(): array
+    {
+        $codeLength = (int) $this->request->getPost('code_length');
+        $splitBy = SecurityCangService::normalizeSplitBy((string) $this->request->getPost('split_by'));
+        $splitLength = SecurityCangService::normalizeSplitLength((int) $this->request->getPost('split_length'));
+        if ($splitLength < 1) {
+            $splitBy = '';
+            $splitLength = 0;
+        }
+        if ($splitBy === '') {
+            $splitLength = 0;
+        }
+
+        return [$codeLength, $splitBy, $splitLength];
+    }
+
+    /**
+     * @param array<string, mixed> $profile
+     */
+    private function cangFormattedLengthError(array $profile, int $codeLength, string $splitBy, int $splitLength): ?string
+    {
+        $targetKey = (string) ($profile['target_key'] ?? '');
+        if (SecurityCangService::formattedLengthWithinLimit($targetKey, $codeLength, $splitBy, $splitLength)) {
+            return null;
+        }
+
+        return SecurityCangService::formattedLengthLimitMessage($targetKey);
     }
 }

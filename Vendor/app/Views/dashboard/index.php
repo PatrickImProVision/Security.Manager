@@ -26,7 +26,7 @@ $analytics = is_array($analytics ?? null) ? $analytics : null;
         </div>
 
         <?php if ($memberCanManageRoles && $analytics !== null) : ?>
-            <div class="card">
+            <div class="card analytics-card">
                 <div class="analytics-head">
                     <div>
                         <h2>Web Usage Analytics</h2>

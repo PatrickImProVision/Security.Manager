@@ -42,7 +42,7 @@ if ($profileImage !== '') {
     <div class="actions">
         <a class="btn btn-primary" href="<?= esc(site_url('Member/User/Edit/' . (int) $user['id'])) ?>">Edit profile</a>
         <?php if (! empty($user['deactivation_guid'])) : ?>
-            <a class="btn btn-danger" href="<?= esc(site_url('Member/User/DeActivate/' . $user['deactivation_guid'])) ?>">Deactivate account</a>
+            <a class="btn btn-danger" href="<?= esc(\App\Libraries\MemberProfileUrls::deactivationUrl((string) $user['deactivation_guid'])) ?>">Deactivate account</a>
         <?php endif ?>
         <form method="post" action="<?= esc(site_url('Member/User/Logout')) ?>" style="display:inline;">
             <?= csrf_field() ?>

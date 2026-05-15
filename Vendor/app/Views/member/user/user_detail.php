@@ -1,7 +1,8 @@
 <?= $this->extend('layouts/site') ?>
 <?= $this->section('main') ?>
-<h1>User Profile</h1>
-<p class="lead">View this member profile.</p>
+<?= view('layouts/_site_header', [
+    'siteHeaderImage' => 'Vendor/public/assets/content-manager-header.png',
+]) ?>
 
 <?= $this->include('member/user/_flash') ?>
 

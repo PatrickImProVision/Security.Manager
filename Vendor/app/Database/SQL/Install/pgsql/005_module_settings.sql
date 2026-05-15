@@ -13,5 +13,6 @@ INSERT INTO __DB_PREFIX__module_settings (module_key, label, description, is_ena
 ('content_community', 'Content Manager - Community', 'Community posts shared between members and public visitors.', TRUE, CURRENT_TIMESTAMP, NULL),
 ('content_personal', 'Content Manager - Personal', 'Private messages sent between registered users.', TRUE, CURRENT_TIMESTAMP, NULL),
 ('web_analytics', 'Web Usage Analytics', 'Whole-site request tracking and Dashboard usage graph.', TRUE, CURRENT_TIMESTAMP, NULL),
+-- CANG defaults and language_id map: see 010_security_cang_profiles.sql (Security Manager).
 ('security_manager', 'Security Manager', 'Security tools, CANG profiles, and application ID generator settings.', TRUE, CURRENT_TIMESTAMP, NULL)
 ON CONFLICT (module_key) DO NOTHING;
