@@ -1,0 +1,22 @@
+CRITICAL - 2026-05-16 23:16:44 --> CodeIgniter\HTTP\Exceptions\BadRequestException: The URI you submitted has disallowed characters: "RCI*IM@5X35CkTgbgLLm1CTo9DVpt%ni"
+[Method: GET, Route: Member/User/ResetPassword/RCI%2AIM@5X35CkTgbgLLm1CTo9DVpt%25ni]
+in SYSTEMPATH\Router\Router.php on line 768.
+ 1 SYSTEMPATH\Router\Router.php(219): CodeIgniter\Router\Router->checkDisallowedChars('Member/User/ResetPassword/RCI*IM@5X35CkTgbgLLm1CTo9DVpt%ni')
+ 2 SYSTEMPATH\CodeIgniter.php(829): CodeIgniter\Router\Router->handle('Member/User/ResetPassword/RCI*IM@5X35CkTgbgLLm1CTo9DVpt%ni')
+ 3 SYSTEMPATH\CodeIgniter.php(441): CodeIgniter\CodeIgniter->tryToRouteIt(Object(CodeIgniter\Router\RouteCollection))
+ 4 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 6 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 7 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+ 8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+CRITICAL - 2026-05-16 23:17:45 --> CodeIgniter\HTTP\Exceptions\BadRequestException: The URI you submitted has disallowed characters: "cpiwiY?RV6ltqLpDq??HSChas:$MtXnC"
+[Method: GET, Route: Member/User/ResetPassword/cpiwiY%3FRV6ltqLpDq%3F%3FHSChas:$MtXnC]
+in SYSTEMPATH\Router\Router.php on line 768.
+ 1 SYSTEMPATH\Router\Router.php(219): CodeIgniter\Router\Router->checkDisallowedChars('Member/User/ResetPassword/cpiwiY?RV6ltqLpDq??HSChas:$MtXnC')
+ 2 SYSTEMPATH\CodeIgniter.php(829): CodeIgniter\Router\Router->handle('Member/User/ResetPassword/cpiwiY?RV6ltqLpDq??HSChas:$MtXnC')
+ 3 SYSTEMPATH\CodeIgniter.php(441): CodeIgniter\CodeIgniter->tryToRouteIt(Object(CodeIgniter\Router\RouteCollection))
+ 4 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 6 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 7 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+ 8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')

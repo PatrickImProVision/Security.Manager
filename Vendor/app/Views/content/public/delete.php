@@ -1,6 +1,7 @@
 <?= $this->extend('layouts/site') ?>
 <?= $this->section('main') ?>
 <?= view('layouts/_site_header', [
+    'pageHeading'     => (string) ($pageHeading ?? ''),
     'siteHeaderImage' => 'Vendor/public/assets/content-manager-header.png',
 ]) ?>
 
@@ -15,14 +16,11 @@
         <p>SEO Description: <?= esc((string) $content['summary']) ?></p>
     <?php endif ?>
 
-    <form method="post" action="<?= esc(site_url('Content/Public/Delete/' . (int) $content['id'])) ?>">
+    <form method="post" action="<?= esc(\App\Libraries\PublicContentUrls::deleteUrl($content)) ?>">
         <?= csrf_field() ?>
         <div class="actions">
             <button type="submit" class="btn btn-danger">Delete content</button>
-            <?php $viewPath = ! empty($content['show_in_nav'])
-                ? 'Content/Public/View/' . (string) $content['slug']
-                : 'Content/Public/View/' . (int) $content['id']; ?>
-            <a class="btn btn-secondary" href="<?= esc(site_url($viewPath)) ?>">Cancel</a>
+            <a class="btn btn-secondary" href="<?= esc(\App\Libraries\PublicContentUrls::postUrl($content)) ?>">Cancel</a>
         </div>
     </form>
 </div>

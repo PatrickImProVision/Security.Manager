@@ -1,0 +1,240 @@
+CRITICAL - 2026-05-17 00:16:29 --> ArgumentCountError: Too few arguments to function App\Libraries\CommunityForumService::uncategorizedBoard(), 1 passed in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\Content\CommunityContent.php on line 48 and exactly 3 expected
+[Method: GET, Route: Content/Community/Index]
+in APPPATH\Libraries\CommunityForumService.php on line 120.
+ 1 APPPATH\Controllers\Content\CommunityContent.php(48): App\Libraries\CommunityForumService->uncategorizedBoard(Object(Closure))
+ 2 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Content\CommunityContent->index()
+ 3 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Content\CommunityContent))
+ 4 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 6 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 7 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+ 8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+CRITICAL - 2026-05-17 00:58:37 --> ErrorException: Constant expression contains invalid operations
+[Method: GET, Route: Content/Community/Forum/R3qSVF9nJYOd]
+in APPPATH\Config\Database.php on line 30.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+CRITICAL - 2026-05-17 00:59:04 --> ErrorException: Constant expression contains invalid operations
+[Method: GET, Route: Content/Community/Forum/R3qSVF9nJYOd]
+in APPPATH\Config\Database.php on line 30.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+CRITICAL - 2026-05-17 00:59:08 --> ErrorException: Constant expression contains invalid operations
+[Method: GET, Route: Content/Community/Forum/R3qSVF9nJYOd]
+in APPPATH\Config\Database.php on line 30.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+CRITICAL - 2026-05-17 00:59:15 --> ErrorException: Constant expression contains invalid operations
+[Method: GET, Route: Content/Community/Forum/R3qSVF9nJYOd]
+in APPPATH\Config\Database.php on line 30.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+ERROR - 2026-05-17 02:24:00 --> Error connecting to the database: ErrorException: pg_connect(): Unable to connect to PostgreSQL server: could not connect to server: Connection timed out (0x0000274C/10060)
+	Is the server running on host &quot;kb330480-001.ca.clouddb.ovh.net&quot; (54.39.135.10) and accepting
+	TCP/IP connections on port 35866? in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\Postgre\Connection.php:78
+Stack trace:
+#0 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler(2, 'pg_connect(): U...', 'P:\\PortableApps...', 78)
+#1 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\Postgre\Connection.php(78): pg_connect('host=kb330480-0...')
+#2 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(555): CodeIgniter\Database\Postgre\Connection->connect(false)
+#3 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#4 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1706): CodeIgniter\Database\BaseConnection->query('SELECT "table_n...')
+#5 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1726): CodeIgniter\Database\BaseConnection->listTables()
+#6 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(122): CodeIgniter\Database\BaseConnection->tableExists('module_settings')
+#7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(164): App\Libraries\ModuleSettings->ensureModuleSettings()
+#8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(84): App\Libraries\ModuleSettings->loadRows()
+#9 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebAnalytics.php(39): App\Libraries\ModuleSettings::isEnabledCached('web_analytics')
+#10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\BaseController.php(53): App\Libraries\WebAnalytics->recordRequest(Object(CodeIgniter\HTTP\IncomingRequest))
+#11 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(922): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+#12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(488): CodeIgniter\CodeIgniter->createController()
+#13 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#14 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#15 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#16 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#17 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps...')
+#18 {main}
+ERROR - 2026-05-17 02:24:21 --> Error connecting to the database: ErrorException: pg_connect(): Unable to connect to PostgreSQL server: could not connect to server: Connection timed out (0x0000274C/10060)
+	Is the server running on host &quot;kb330480-001.ca.clouddb.ovh.net&quot; (54.39.135.10) and accepting
+	TCP/IP connections on port 35866? in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\Postgre\Connection.php:78
+Stack trace:
+#0 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler(2, 'pg_connect(): U...', 'P:\\PortableApps...', 78)
+#1 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\Postgre\Connection.php(78): pg_connect('host=kb330480-0...')
+#2 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(555): CodeIgniter\Database\Postgre\Connection->connect(false)
+#3 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#4 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1706): CodeIgniter\Database\BaseConnection->query('SELECT "table_n...')
+#5 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1726): CodeIgniter\Database\BaseConnection->listTables()
+#6 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(122): CodeIgniter\Database\BaseConnection->tableExists('module_settings')
+#7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(164): App\Libraries\ModuleSettings->ensureModuleSettings()
+#8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(84): App\Libraries\ModuleSettings->loadRows()
+#9 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\ModuleSettings.php(75): App\Libraries\ModuleSettings::isEnabledCached('content_public')
+#10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\Home.php(69): App\Libraries\ModuleSettings->isEnabled('content_public')
+#11 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\Home.php(26): App\Controllers\Home->moduleStates()
+#12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(951): App\Controllers\Home->index()
+#13 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Home))
+#14 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#15 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#16 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#17 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#18 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps...')
+#19 {main}
+ERROR - 2026-05-17 07:26:29 --> pg_query(): Query failed: ERROR:  relation &quot;ps_web_settings&quot; does not exist
+LINE 2: FROM &quot;ps_web_settings&quot;
+             ^
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('SELECT "setting_key"
+FROM "ps_web_settings"')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT "setting_key"
+FROM "ps_web_settings"')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT "setting_key"
+FROM "ps_web_settings"', [], false)
+ 4 APPPATH\Libraries\WebSettings.php(121): CodeIgniter\Database\BaseBuilder->get()
+ 5 APPPATH\Libraries\WebSettings.php(50): App\Libraries\WebSettings->ensureTable()
+ 6 APPPATH\Libraries\SitePageTitle.php(21): App\Libraries\WebSettings->homeSettings()
+ 7 APPPATH\Libraries\SitePageTitle.php(48): App\Libraries\SitePageTitle::siteName()
+ 8 APPPATH\Views\layouts\site.php(6): App\Libraries\SitePageTitle::documentTitle('')
+ 9 SYSTEMPATH\View\View.php(240): include('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\app\\Views\\layouts\\site.php')
+10 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+11 SYSTEMPATH\View\View.php(256): CodeIgniter\View\View->render('layouts/site', [], true)
+12 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('install/uninstall_progress', [], true)
+13 APPPATH\Controllers\Install.php(593): view('install/uninstall_progress', [...])
+14 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+15 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+16 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+17 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+18 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+19 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+20 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-17 07:26:31 --> Error connecting to the database: mysqli_sql_exception: Access denied for user ''@'localhost' (using password: NO) in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('localhost', '', Object(SensitiveParameterValue), '', 3306, '', 0)
+#1 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1706): CodeIgniter\Database\BaseConnection->query('SHOW TABLES FRO...')
+#4 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1726): CodeIgniter\Database\BaseConnection->listTables()
+#5 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebSettings.php(113): CodeIgniter\Database\BaseConnection->tableExists('web_settings')
+#6 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebSettings.php(50): App\Libraries\WebSettings->ensureTable()
+#7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\SitePageTitle.php(21): App\Libraries\WebSettings->homeSettings()
+#8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\SitePageTitle.php(48): App\Libraries\SitePageTitle::siteName()
+#9 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Views\layouts\site.php(6): App\Libraries\SitePageTitle::documentTitle('')
+#10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(240): include('P:\\PortableApps...')
+#11 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+#12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(256): CodeIgniter\View\View->render('layouts/site', Array, true)
+#13 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Common.php(1250): CodeIgniter\View\View->render('install/uninsta...', Array, true)
+#14 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\Install.php(593): view('install/uninsta...', Array)
+#15 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+#16 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+#17 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#18 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#19 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#20 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#21 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps...')
+#22 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: Access denied for user ''@'localhost' (using password: NO) in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1706): CodeIgniter\Database\BaseConnection->query('SHOW TABLES FRO...')
+#3 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1726): CodeIgniter\Database\BaseConnection->listTables()
+#4 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebSettings.php(113): CodeIgniter\Database\BaseConnection->tableExists('web_settings')
+#5 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebSettings.php(50): App\Libraries\WebSettings->ensureTable()
+#6 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\SitePageTitle.php(21): App\Libraries\WebSettings->homeSettings()
+#7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\SitePageTitle.php(48): App\Libraries\SitePageTitle::siteName()
+#8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Views\layouts\site.php(6): App\Libraries\SitePageTitle::documentTitle('')
+#9 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(240): include('P:\\PortableApps...')
+#10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+#11 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(256): CodeIgniter\View\View->render('layouts/site', Array, true)
+#12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Common.php(1250): CodeIgniter\View\View->render('install/uninsta...', Array, true)
+#13 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\Install.php(593): view('install/uninsta...', Array)
+#14 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+#15 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+#16 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#17 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#18 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#19 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#20 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps...')
+#21 {main}
+CRITICAL - 2026-05-17 08:35:55 --> TypeError: CodeIgniter\CLI\InputOutput::input(): Return value must be of type string, bool returned
+[Method: CLI, Route: db:table/seo_settings]
+in SYSTEMPATH\CLI\InputOutput.php on line 46.
+ 1 SYSTEMPATH\CLI\CLI.php(260): CodeIgniter\CLI\InputOutput->input()
+ 2 SYSTEMPATH\CLI\CLI.php(298): CodeIgniter\CLI\CLI::prompt('
+Which table do you want to see?', [...], [...])
+ 3 SYSTEMPATH\Commands\Database\ShowTableInfo.php(145): CodeIgniter\CLI\CLI::promptByKey([], [...], 'required')
+ 4 SYSTEMPATH\CLI\Commands.php(74): CodeIgniter\Commands\Database\ShowTableInfo->run([...])
+ 5 SYSTEMPATH\CLI\Console.php(47): CodeIgniter\CLI\Commands->run('db:table', [...])
+ 6 SYSTEMPATH\Boot.php(442): CodeIgniter\CLI\Console->run()
+ 7 SYSTEMPATH\Boot.php(166): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+ 8 ROOTPATH\spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+ERROR - 2026-05-17 08:51:07 --> pg_query(): Query failed: ERROR:  relation &quot;ps_web_settings&quot; does not exist
+LINE 2: FROM &quot;ps_web_settings&quot;
+             ^
+in SYSTEMPATH\Database\Postgre\Connection.php on line 200.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\Postgre\Connection->execute('SELECT "setting_key"
+FROM "ps_web_settings"')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT "setting_key"
+FROM "ps_web_settings"')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT "setting_key"
+FROM "ps_web_settings"', [], false)
+ 4 APPPATH\Libraries\WebSettings.php(121): CodeIgniter\Database\BaseBuilder->get()
+ 5 APPPATH\Libraries\WebSettings.php(50): App\Libraries\WebSettings->ensureTable()
+ 6 APPPATH\Libraries\SitePageTitle.php(21): App\Libraries\WebSettings->homeSettings()
+ 7 APPPATH\Libraries\SitePageTitle.php(48): App\Libraries\SitePageTitle::siteName()
+ 8 APPPATH\Views\layouts\site.php(7): App\Libraries\SitePageTitle::documentTitle('')
+ 9 SYSTEMPATH\View\View.php(240): include('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\app\\Views\\layouts\\site.php')
+10 SYSTEMPATH\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+11 SYSTEMPATH\View\View.php(256): CodeIgniter\View\View->render('layouts/site', [], true)
+12 SYSTEMPATH\Common.php(1250): CodeIgniter\View\View->render('install/uninstall_progress', [], true)
+13 APPPATH\Controllers\Install.php(593): view('install/uninstall_progress', [...])
+14 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+15 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+16 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+17 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+18 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+19 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+20 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps\\XamppPortable\\App\\Xampp\\htdocs\\Product.Store\\Vendor\\public\\index.php')
+ERROR - 2026-05-17 08:51:09 --> Error connecting to the database: mysqli_sql_exception: Access denied for user ''@'localhost' (using password: NO) in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('localhost', '', Object(SensitiveParameterValue), '', 3306, '', 0)
+#1 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1706): CodeIgniter\Database\BaseConnection->query('SHOW TABLES FRO...')
+#4 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1726): CodeIgniter\Database\BaseConnection->listTables()
+#5 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebSettings.php(113): CodeIgniter\Database\BaseConnection->tableExists('web_settings')
+#6 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebSettings.php(50): App\Libraries\WebSettings->ensureTable()
+#7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\SitePageTitle.php(21): App\Libraries\WebSettings->homeSettings()
+#8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\SitePageTitle.php(48): App\Libraries\SitePageTitle::siteName()
+#9 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Views\layouts\site.php(7): App\Libraries\SitePageTitle::documentTitle('')
+#10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(240): include('P:\\PortableApps...')
+#11 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+#12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(256): CodeIgniter\View\View->render('layouts/site', Array, true)
+#13 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Common.php(1250): CodeIgniter\View\View->render('install/uninsta...', Array, true)
+#14 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\Install.php(593): view('install/uninsta...', Array)
+#15 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+#16 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+#17 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#18 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#19 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#20 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#21 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps...')
+#22 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: Access denied for user ''@'localhost' (using password: NO) in P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1706): CodeIgniter\Database\BaseConnection->query('SHOW TABLES FRO...')
+#3 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Database\BaseConnection.php(1726): CodeIgniter\Database\BaseConnection->listTables()
+#4 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebSettings.php(113): CodeIgniter\Database\BaseConnection->tableExists('web_settings')
+#5 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\WebSettings.php(50): App\Libraries\WebSettings->ensureTable()
+#6 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\SitePageTitle.php(21): App\Libraries\WebSettings->homeSettings()
+#7 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Libraries\SitePageTitle.php(48): App\Libraries\SitePageTitle::siteName()
+#8 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Views\layouts\site.php(7): App\Libraries\SitePageTitle::documentTitle('')
+#9 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(240): include('P:\\PortableApps...')
+#10 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(243): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+#11 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\View\View.php(256): CodeIgniter\View\View->render('layouts/site', Array, true)
+#12 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Common.php(1250): CodeIgniter\View\View->render('install/uninsta...', Array, true)
+#13 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\app\Controllers\Install.php(593): view('install/uninsta...', Array)
+#14 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(951): App\Controllers\Install->uninstallNext()
+#15 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Install))
+#16 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#17 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#18 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#19 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\Vendor\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#20 P:\PortableApps\XamppPortable\App\Xampp\htdocs\Product.Store\index.php(13): require('P:\\PortableApps...')
+#21 {main}

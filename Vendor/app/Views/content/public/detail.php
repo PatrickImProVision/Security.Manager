@@ -1,38 +1,38 @@
 <?= $this->extend('layouts/site') ?>
 <?= $this->section('main') ?>
 <?= view('layouts/_site_header', [
+    'pageHeading'     => (string) ($pageHeading ?? ''),
     'siteHeaderImage' => 'Vendor/public/assets/content-manager-header.png',
 ]) ?>
 
 <?= $this->include('member/user/_flash') ?>
 
-<div class="card prose">
-    <h2><?= esc((string) $content['title']) ?></h2>
-    <p>Slug: <code><?= esc((string) $content['slug']) ?></code></p>
-    <p>Status: <code><?= esc((string) $content['status']) ?></code></p>
-    <?php if (! empty($content['published_at'])) : ?>
-        <p>Published: <code><?= esc((string) $content['published_at']) ?></code></p>
-    <?php endif ?>
-    <?php if (! empty($content['updated_at'])) : ?>
-        <p>Updated: <code><?= esc((string) $content['updated_at']) ?></code></p>
-    <?php endif ?>
+<article class="card wp-blog-single">
+    <header class="wp-blog-single-header">
+        <h1 class="wp-blog-single-title"><?= esc((string) ($content['title'] ?? 'Post')) ?></h1>
+        <p class="wp-blog-post-meta wp-blog-single-meta">
+            <?php if (! empty($content['date_label'])) : ?>
+                <time datetime="<?= esc((string) ($content['published_at'] ?? $content['created_at'] ?? ''), 'attr') ?>"><?= esc((string) $content['date_label']) ?></time>
+            <?php endif ?>
+            <?php if (! empty($content['author_name'])) : ?>
+                <span class="wp-blog-meta-sep">·</span>
+                <span class="wp-blog-post-author">by <?= esc((string) $content['author_name']) ?></span>
+            <?php endif ?>
+            <?php if (! empty($canManage) && empty($content['is_published'])) : ?>
+                <span class="wp-blog-status-pill">Draft</span>
+            <?php endif ?>
+        </p>
+    </header>
 
-    <?php if (trim((string) ($content['summary'] ?? '')) !== '') : ?>
-        <h2>SEO Description</h2>
-        <p><?= esc((string) $content['summary']) ?></p>
-    <?php endif ?>
-
-    <h2>Content</h2>
-    <div class="content-body">
+    <div class="wp-blog-single-body content-body">
         <?= $bodyHtml ?? '' ?>
     </div>
 
-    <div class="actions">
-        <a class="btn btn-secondary" href="<?= esc(site_url('Content/Public/Index')) ?>">Back to contents</a>
+    <footer class="wp-blog-single-footer actions">
         <?php if (! empty($canManage)) : ?>
-            <a class="btn btn-primary" href="<?= esc(site_url('Content/Public/Edit/' . (int) $content['id'])) ?>">Edit content</a>
-            <a class="btn btn-danger" href="<?= esc(site_url('Content/Public/Delete/' . (int) $content['id'])) ?>">Delete content</a>
+            <a class="btn btn-primary" href="<?= esc(\App\Libraries\PublicContentUrls::editUrl($content)) ?>">Edit post</a>
+            <a class="btn btn-danger" href="<?= esc(\App\Libraries\PublicContentUrls::deleteUrl($content)) ?>">Delete</a>
         <?php endif ?>
-    </div>
-</div>
+    </footer>
+</article>
 <?= $this->endSection() ?>

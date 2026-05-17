@@ -1,11 +1,13 @@
 <?= $this->extend('layouts/site') ?>
 <?= $this->section('main') ?>
-<h1><?= esc((string) $message['subject']) ?></h1>
-<p class="lead">Personal message detail.</p>
+<?= view('layouts/_site_header', [
+    'siteHeaderImage' => 'Vendor/public/assets/content-manager-header.png',
+]) ?>
 
 <?= $this->include('member/user/_flash') ?>
 
 <div class="card prose">
+    <h2><?= esc((string) $message['subject']) ?></h2>
     <p>Message ID: <code><?= esc((string) $message['id']) ?></code></p>
     <p>Status: <code><?= esc((string) $message['status']) ?></code></p>
     <p>From: <code><?= esc((string) ($message['sender_name'] ?? '-')) ?></code></p>

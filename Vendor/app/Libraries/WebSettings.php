@@ -20,15 +20,30 @@ final class WebSettings
 
     private static bool $ensured = false;
 
+    /** @var array{web_name: string, web_description: string}|null */
+    private static ?array $homeSettingsCache = null;
+
+    public static function defaultWebName(): string
+    {
+        return self::DEFAULTS[self::WEB_NAME];
+    }
+
     /**
      * @return array{web_name: string, web_description: string}
      */
     public function homeSettings(): array
     {
+        if (self::$homeSettingsCache !== null) {
+            return self::$homeSettingsCache;
+        }
+
         $settings = self::DEFAULTS;
 
         if (! InstallationState::isInstalled()) {
-            return $settings;
+            return self::$homeSettingsCache = [
+                self::WEB_NAME        => self::DEFAULTS[self::WEB_NAME],
+                self::WEB_DESCRIPTION => self::DEFAULTS[self::WEB_DESCRIPTION],
+            ];
         }
 
         try {
@@ -48,10 +63,10 @@ final class WebSettings
                 }
             }
         } catch (Throwable) {
-            return self::DEFAULTS;
+            return self::$homeSettingsCache = self::DEFAULTS;
         }
 
-        return [
+        return self::$homeSettingsCache = [
             self::WEB_NAME        => trim($settings[self::WEB_NAME]) ?: self::DEFAULTS[self::WEB_NAME],
             self::WEB_DESCRIPTION => trim($settings[self::WEB_DESCRIPTION]) ?: self::DEFAULTS[self::WEB_DESCRIPTION],
         ];
@@ -83,6 +98,9 @@ final class WebSettings
             $payload['created_at'] = date('Y-m-d H:i:s');
             $db->table('web_settings')->insert($payload);
         }
+
+        self::$homeSettingsCache = null;
+        SiteLayoutData::clearCache();
     }
 
     private function ensureTable(): void
@@ -99,9 +117,13 @@ final class WebSettings
         }
 
         if ($db->tableExists('web_settings')) {
+            $existingKeys = [];
+            foreach ($db->table('web_settings')->select('setting_key')->get()->getResultArray() as $row) {
+                $existingKeys[(string) ($row['setting_key'] ?? '')] = true;
+            }
+
             foreach (self::DEFAULTS as $key => $value) {
-                $exists = $db->table('web_settings')->where('setting_key', $key)->countAllResults() > 0;
-                if ($exists) {
+                if (isset($existingKeys[$key])) {
                     continue;
                 }
 

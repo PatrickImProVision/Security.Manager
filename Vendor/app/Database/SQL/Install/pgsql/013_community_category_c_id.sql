@@ -1,0 +1,1 @@
+ALTER TABLE __DB_PREFIX__community_categories ADD COLUMN IF NOT EXISTS c_id VARCHAR(128) NULL;

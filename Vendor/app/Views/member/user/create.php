@@ -1,12 +1,16 @@
 <?= $this->extend('layouts/site') ?>
 <?= $this->section('main') ?>
-<h1>Create User</h1>
-<p class="lead">Create an active test user with a role below your current level.</p>
+<?= view('layouts/_site_header', [
+    'siteHeaderImage' => 'Vendor/public/assets/content-manager-header.png',
+]) ?>
 
 <?= $this->include('member/user/_flash') ?>
 
-<form method="post" action="<?= esc(site_url('Member/User/Create')) ?>" class="card">
+<form method="post" action="<?= esc(site_url('Member/User/Create')) ?>" class="card prose">
     <?= csrf_field() ?>
+
+    <h2>Create User</h2>
+    <p>Create an active test user with a role below your current level.</p>
 
     <?php if (empty($roleOptions)) : ?>
         <div class="err">No assignable roles are currently available below your role level.</div>

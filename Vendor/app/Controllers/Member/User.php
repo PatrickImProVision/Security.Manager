@@ -10,6 +10,7 @@ use App\Libraries\MemberProfileUrls;
 use App\Libraries\ModuleSettings;
 use App\Libraries\RoleService;
 use App\Libraries\SecurityCangService;
+use App\Libraries\SitePageTitle;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class User extends BaseController
@@ -24,7 +25,7 @@ class User extends BaseController
         }
 
         return view('member/user/profile', [
-            'title'          => 'User Profile',
+            'title'          => SitePageTitle::format('Profile'),
             'wideLayout'     => true,
             'user'           => $current,
             'primaryRole'    => $this->roleService()->roleName((string) ($current['role'] ?? 'user')),
@@ -40,7 +41,7 @@ class User extends BaseController
         }
 
         return view('member/user/list', [
-            'title'      => 'Member List',
+            'title'      => SitePageTitle::format('Member List'),
             'wideLayout' => true,
             'users'      => $this->memberListUsers(),
             'errors'     => $this->flashErrors(),
@@ -86,7 +87,7 @@ class User extends BaseController
         }
 
         return view('member/user/register', [
-            'title'  => 'Register',
+            'title'  => SitePageTitle::format('Register'),
             'errors' => $this->flashErrors(),
         ]);
     }
@@ -147,10 +148,9 @@ class User extends BaseController
             return redirect()->back()->withInput()->with('errors', ['register' => $registrationError]);
         }
 
-        return redirect()->to(site_url('Member/User/Login'))->with(
-            'message',
-            'Registration saved. Activate using: ' . MemberProfileUrls::activationUrl($activationGuid),
-        );
+        return redirect()->to(site_url('Member/User/Login'))
+            ->with('message', 'Registration saved. Activate your account before signing in.')
+            ->with('activation_url', MemberProfileUrls::activationUrl($activationGuid));
     }
 
     public function newUser(): ResponseInterface|string
@@ -165,7 +165,8 @@ class User extends BaseController
         }
 
         return view('member/user/create', [
-            'title'       => 'Create User',
+            'title'       => SitePageTitle::format('Create User'),
+            'wideLayout'  => true,
             'roleOptions' => $this->roleService()->assignableRoleOptionsFor((string) ($current['role'] ?? '')),
             'errors'      => $this->flashErrors(),
         ]);
@@ -235,9 +236,12 @@ class User extends BaseController
             return redirect()->to(site_url('Member/User/MyProfile'));
         }
 
+        $activationUrl = session()->getFlashdata('activation_url');
+
         return view('member/user/login', [
-            'title'  => 'Login',
-            'errors' => $this->flashErrors(),
+            'title'          => SitePageTitle::format('Login'),
+            'activationUrl'  => is_string($activationUrl) && $activationUrl !== '' ? $activationUrl : null,
+            'errors'         => $this->flashErrors(),
         ]);
     }
 
@@ -286,9 +290,12 @@ class User extends BaseController
             return redirect()->to(site_url('Member/User/MyProfile'));
         }
 
+        $resetUrl = session()->getFlashdata('reset_url');
+
         return view('member/user/forgot_password', [
-            'title'  => 'Forgot Password',
-            'errors' => $this->flashErrors(),
+            'title'    => SitePageTitle::format('Forgot Password'),
+            'resetUrl' => is_string($resetUrl) && $resetUrl !== '' ? $resetUrl : null,
+            'errors'   => $this->flashErrors(),
         ]);
     }
 
@@ -315,7 +322,106 @@ class User extends BaseController
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
-        return redirect()->back()->with('message', 'Password reset token created: ' . $guid);
+        return redirect()->back()
+            ->with('message', 'Password reset link created. E-mail is not configured yet, so use the link below.')
+            ->with('reset_url', MemberProfileUrls::resetPasswordUrl($guid));
+    }
+
+    public function resetPassword(string $guid): ResponseInterface|string
+    {
+        if ($this->currentUser() !== null) {
+            return redirect()->to(site_url('Member/User/MyProfile'));
+        }
+
+        $guid = MemberProfileUrls::tokenFromPath($guid);
+        $user = AppDatabase::connection()->table('users')->where('reset_guid', $guid)->get()->getRowArray();
+        if (! is_array($user)) {
+            return view('member/user/reset_password', [
+                'title'   => SitePageTitle::format('Reset Password'),
+                'valid'   => false,
+                'message' => 'Reset link is invalid or already used.',
+                'errors'  => $this->flashErrors(),
+            ]);
+        }
+
+        $cang = new SecurityCangService();
+
+        return view('member/user/reset_password', [
+            'title'                 => SitePageTitle::format('Reset Password'),
+            'valid'                 => true,
+            'token'                 => $guid,
+            'cangPasswordProposal'  => $cang->isPasswordProposalAvailable(),
+            'errors'                => $this->flashErrors(),
+        ]);
+    }
+
+    public function proposeResetPassword(string $guid): ResponseInterface
+    {
+        if ($this->currentUser() !== null) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false, 'error' => 'Log out to use a reset link.']);
+        }
+
+        if (! $this->request->isAJAX()) {
+            return $this->response->setStatusCode(400)->setJSON(['ok' => false, 'error' => 'Invalid request.']);
+        }
+
+        $guid = MemberProfileUrls::tokenFromPath($guid);
+        $user = AppDatabase::connection()->table('users')->where('reset_guid', $guid)->get()->getRowArray();
+        if (! is_array($user)) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'Reset link is invalid or already used.']);
+        }
+
+        $service = new SecurityCangService();
+        if (! $service->isPasswordProposalAvailable()) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'ok'    => false,
+                'error' => 'Password suggestion is not available. Enter a password manually.',
+            ]);
+        }
+
+        $proposal = $service->proposePasswordSample();
+        if ($proposal === null) {
+            return $this->response->setStatusCode(503)->setJSON([
+                'ok'    => false,
+                'error' => 'Could not generate a password. Try again or type your own.',
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'ok'       => true,
+            'password' => $proposal['password'],
+        ]);
+    }
+
+    public function submitResetPassword(string $guid): ResponseInterface
+    {
+        if ($this->currentUser() !== null) {
+            return redirect()->to(site_url('Member/User/MyProfile'));
+        }
+
+        $guid = MemberProfileUrls::tokenFromPath($guid);
+        $db = AppDatabase::connection();
+        $user = $db->table('users')->where('reset_guid', $guid)->get()->getRowArray();
+        if (! is_array($user)) {
+            return redirect()->to(site_url('Member/User/ForgotPassword'))->with('errors', ['reset' => 'Reset link is invalid or already used.']);
+        }
+
+        $rules = [
+            'password'         => 'required|min_length[8]|max_length[200]',
+            'password_confirm' => 'required|matches[password]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->to(MemberProfileUrls::resetPasswordUrl($guid))->withInput();
+        }
+
+        $db->table('users')->where('id', (int) $user['id'])->update([
+            'password_hash' => password_hash((string) $this->request->getPost('password'), PASSWORD_DEFAULT),
+            'reset_guid'    => null,
+            'updated_at'    => date('Y-m-d H:i:s'),
+        ]);
+
+        return redirect()->to(site_url('Member/User/Login'))->with('message', 'Password updated. You can now log in.');
     }
 
     public function activate(string $guid): ResponseInterface|string
@@ -325,7 +431,7 @@ class User extends BaseController
         $user = $db->table('users')->where('activation_guid', $guid)->get()->getRowArray();
         if (! is_array($user)) {
             return view('member/user/activation', [
-                'title'   => 'Activate Account',
+                'title'   => SitePageTitle::format('Activate Account'),
                 'success' => false,
                 'message' => 'Activation link is invalid or already used.',
             ]);
@@ -338,7 +444,7 @@ class User extends BaseController
         ]);
 
         return view('member/user/activation', [
-            'title'   => 'Activate Account',
+            'title'   => SitePageTitle::format('Activate Account'),
             'success' => true,
             'message' => 'Account activated. You can now log in.',
         ]);
@@ -363,7 +469,7 @@ class User extends BaseController
         $canChangeRole = $this->canChangeUserRole($current, $user);
 
         return view('member/user/edit', [
-            'title'          => (int) ($current['id'] ?? 0) === (int) ($user['id'] ?? 0) ? 'Edit Profile' : 'Edit User',
+            'title'          => SitePageTitle::format((int) ($current['id'] ?? 0) === (int) ($user['id'] ?? 0) ? 'Edit Profile' : 'Edit User'),
             'user'           => $user,
             'current'        => $current,
             'canManageRoles' => $canChangeRole,
@@ -546,7 +652,7 @@ class User extends BaseController
         $this->forgetCurrentUser();
 
         return view('member/user/deactivated', [
-            'title' => 'Account Deactivated',
+            'title' => SitePageTitle::format('Account Deactivated'),
         ]);
     }
 
@@ -569,7 +675,7 @@ class User extends BaseController
         }
 
         return view('member/user/roles', [
-            'title'      => 'Manage Roles',
+            'title'      => SitePageTitle::format('Manage Roles'),
             'wideLayout' => true,
             'roles'      => $this->roleService()->listRoles(),
             'errors'     => $this->flashErrors(),
@@ -588,7 +694,7 @@ class User extends BaseController
         }
 
         return view('member/user/role_assign', [
-            'title'       => 'Assign User Roles',
+            'title'       => SitePageTitle::format('Assign User Roles'),
             'wideLayout'  => true,
             'users'       => $this->manageableUsers($current),
             'roleOptions' => $this->roleService()->assignableRoleOptionsFor((string) ($current['role'] ?? '')),
@@ -695,7 +801,7 @@ class User extends BaseController
         $canManageUser = $this->canChangeUserRole($current, $user);
 
         return view('member/user/user_detail', [
-            'title'          => 'User Details',
+            'title'          => SitePageTitle::format('User Details'),
             'wideLayout'     => true,
             'user'           => $user,
             'current'        => $current,
@@ -751,7 +857,7 @@ class User extends BaseController
         }
 
         return view('member/user/role_form', [
-            'title'  => 'Add Role',
+            'title'  => SitePageTitle::format('Add Role'),
             'mode'   => 'create',
             'role'   => null,
             'errors' => $this->flashErrors(),
@@ -801,7 +907,7 @@ class User extends BaseController
         }
 
         return view('member/user/role_detail', [
-            'title' => 'Role Details',
+            'title' => SitePageTitle::format('Role Details'),
             'role'  => $role,
         ]);
     }
@@ -823,7 +929,7 @@ class User extends BaseController
         }
 
         return view('member/user/role_form', [
-            'title'  => 'Edit Role',
+            'title'  => SitePageTitle::format('Edit Role'),
             'mode'   => 'edit',
             'role'   => $role,
             'errors' => $this->flashErrors(),
@@ -1031,7 +1137,7 @@ class User extends BaseController
             if (! $personalMessagesEnabled) {
                 $row['message_disabled'] = 'Personal messaging disabled';
             } elseif ($row['is_active'] && $userId !== $currentUserId) {
-                $row['message_url'] = site_url('Content/Personal/Create') . '?recipient_id=' . $userId;
+                $row['message_url'] = MemberProfileUrls::personalMessageCreateUrl($row);
             }
             $users[] = $row;
         }
@@ -1061,39 +1167,7 @@ class User extends BaseController
      */
     private function findUserByProfileRef(string $ref): ?array
     {
-        if ($ref === '') {
-            return null;
-        }
-
-        $db = AppDatabase::connection();
-        try {
-            $securityManagerOn = (new ModuleSettings())->isEnabled(ModuleSettings::SECURITY_MANAGER);
-        } catch (\Throwable) {
-            $securityManagerOn = true;
-        }
-
-        if ($securityManagerOn) {
-            $byCid = $db->table('users')->where('c_id', $ref)->get()->getRowArray();
-            if (is_array($byCid)) {
-                return $byCid;
-            }
-        }
-
-        if (ctype_digit($ref)) {
-            $byId = $db->table('users')->where('id', (int) $ref)->get()->getRowArray();
-            if (is_array($byId)) {
-                return $byId;
-            }
-        }
-
-        if (! $securityManagerOn) {
-            $byCid = $db->table('users')->where('c_id', $ref)->get()->getRowArray();
-            if (is_array($byCid)) {
-                return $byCid;
-            }
-        }
-
-        return null;
+        return MemberProfileUrls::resolveUserRef($ref);
     }
 
     private function roleService(): RoleService

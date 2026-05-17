@@ -30,15 +30,15 @@ final class InstallGuard implements FilterInterface
         }
 
         if (! $installed && $onInstaller && is_numeric(session()->get('member_user_id')) && ! $this->canAccessInstaller()) {
-            return $this->installerForbidden('Only Administrator, Manager, or Owner accounts can access install or restore.');
+            return $this->installerForbidden('Only Owner accounts can access install or restore.');
         }
 
         if ($installed && $onInstaller) {
             if ($seg2 === 'uninstall') {
                 if (! $this->canAccessInstaller()) {
                     return is_numeric(session()->get('member_user_id'))
-                        ? redirect()->to(site_url('Member/User/MyProfile'))->with('errors', ['install' => 'Only Administrator, Manager, or Owner accounts can access uninstall.'])
-                        : redirect()->to(site_url('Member/User/Login'))->with('errors', ['install' => 'Log in as Administrator, Manager, or Owner to access uninstall.']);
+                        ? redirect()->to(site_url('Member/User/MyProfile'))->with('errors', ['install' => 'Only Owner accounts can access uninstall.'])
+                        : redirect()->to(site_url('Member/User/Login'))->with('errors', ['install' => 'Log in as Owner to access uninstall.']);
                 }
 
                 $seg3 = $segments[2] ?? '';
@@ -55,18 +55,13 @@ final class InstallGuard implements FilterInterface
 
     private function canAccessInstaller(): bool
     {
-        if ((bool) session()->get('member_can_manage_roles')) {
-            return true;
-        }
-
         $role = (string) (session()->get('member_role') ?? '');
-
-        if (in_array($role, ['administrator', 'manager', 'owner'], true)) {
-            return true;
+        if ($role === '') {
+            return false;
         }
 
         try {
-            return $role !== '' && (new RoleService())->isAdministrator($role);
+            return (new RoleService())->isOwner($role);
         } catch (\Throwable) {
             return false;
         }

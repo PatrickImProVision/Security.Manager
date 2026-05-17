@@ -6,11 +6,14 @@ CREATE TABLE IF NOT EXISTS __DB_PREFIX__community_categories (
   sort_order INTEGER NOT NULL DEFAULT 0,
   is_active INTEGER NOT NULL DEFAULT 1,
   is_system INTEGER NOT NULL DEFAULT 0,
+  parent_id INTEGER NULL,
+  slug TEXT NULL,
+  c_id TEXT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT
 );
 
 CREATE INDEX IF NOT EXISTS __DB_PREFIX__community_categories_active_idx ON __DB_PREFIX__community_categories (is_active, sort_order);
 
-INSERT OR IGNORE INTO __DB_PREFIX__community_categories (name, description, sort_order, is_active, is_system, created_at, updated_at) VALUES
-('Unknown', 'Posts created without a category.', 0, 1, 1, CURRENT_TIMESTAMP, NULL);
+INSERT OR IGNORE INTO __DB_PREFIX__community_categories (name, description, sort_order, is_active, is_system, parent_id, slug, created_at, updated_at) VALUES
+('Unknown', 'Posts created without a category.', 0, 1, 1, NULL, 'unknown', CURRENT_TIMESTAMP, NULL);

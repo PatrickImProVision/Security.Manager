@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Controllers\Content;
 
+use App\Libraries\RichHtml;
+
 use App\Controllers\BaseController;
 use App\Libraries\AppDatabase;
 use App\Libraries\ModuleSettings;
+use App\Libraries\PublicContentUrls;
 use App\Libraries\RoleService;
+use App\Libraries\SitePageTitle;
 use App\Libraries\SecurityCangService;
+use App\Libraries\WebSettings;
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -33,19 +38,25 @@ class PublicContent extends BaseController
         $totalPages = max(1, (int) ceil($total / self::CONTENT_PER_PAGE));
         $page = max(1, (int) ($this->request->getGet('page') ?: 1));
         $page = min($page, $totalPages);
+        $posts = $this->prepareBlogPosts($this->contentRows($canManage, self::CONTENT_PER_PAGE, ($page - 1) * self::CONTENT_PER_PAGE));
+        $web = (new WebSettings())->homeSettings();
 
         return view('content/public/index', [
-            'title'      => 'Public Content',
-            'wideLayout' => true,
-            'contents'   => $this->contentRows($canManage, self::CONTENT_PER_PAGE, ($page - 1) * self::CONTENT_PER_PAGE),
-            'canManage'  => $canManage,
-            'pagination' => [
+            'title'           => SitePageTitle::format('Blog'),
+            'pageHeading'     => SitePageTitle::trail('Blog'),
+            'blogTagline'     => trim((string) ($web['web_description'] ?? '')),
+            'breadcrumbItems' => SitePageTitle::breadcrumbs([['label' => 'Blog']]),
+            'wideLayout'      => true,
+            'posts'       => $posts,
+            'recentPosts' => $this->recentBlogPosts($canManage, 8),
+            'canManage'   => $canManage,
+            'pagination'  => [
                 'page'       => $page,
                 'perPage'    => self::CONTENT_PER_PAGE,
                 'total'      => $total,
                 'totalPages' => $totalPages,
             ],
-            'errors'     => $this->flashErrors(),
+            'errors'      => $this->flashErrors(),
         ]);
     }
 
@@ -64,7 +75,12 @@ class PublicContent extends BaseController
         $this->ensureContentTable();
 
         return view('content/public/form', [
-            'title'      => 'Create Public Content',
+            'title'           => SitePageTitle::format('Blog', 'Create Post'),
+            'pageHeading'     => SitePageTitle::trail('Blog', 'Create Post'),
+            'breadcrumbItems' => SitePageTitle::breadcrumbs([
+                ['label' => 'Blog', 'url' => site_url('Content/Public/Index')],
+                ['label' => 'Create Post'],
+            ]),
             'wideLayout' => true,
             'mode'       => 'create',
             'content'    => [],
@@ -99,7 +115,9 @@ class PublicContent extends BaseController
             $id = is_array($created) ? (int) ($created['id'] ?? 0) : 0;
         }
 
-        return redirect()->to($this->contentViewUrl($data, $id))->with('message', 'Public content created.');
+        $created = $id > 0 ? $this->findContent($id) : null;
+
+        return redirect()->to(PublicContentUrls::postUrl(is_array($created) ? $created : array_merge($data, ['id' => $id])))->with('message', 'Public content created.');
     }
 
     public function view(int $id): ResponseInterface|string
@@ -122,14 +140,10 @@ class PublicContent extends BaseController
             return redirect()->to(site_url('Content/Public/Index'))->with('errors', ['content' => 'Content not found.']);
         }
 
-        if (! empty($content['show_in_nav'])) {
-            return redirect()->to(site_url('Content/Public/View/' . (string) $content['slug']));
-        }
-
-        return $this->renderContent($content, $canManage);
+        return redirect()->to(PublicContentUrls::postUrl($content));
     }
 
-    public function viewSlug(string $slug): ResponseInterface|string
+    public function viewSlug(string $ref): ResponseInterface|string
     {
         $disabled = $this->requirePublicContentEnabled();
         if ($disabled instanceof ResponseInterface) {
@@ -138,12 +152,16 @@ class PublicContent extends BaseController
 
         $this->ensureContentTable();
 
-        $slug = $this->normalizeSlug($slug);
-        $content = AppDatabase::connection()->table('public_contents')->where('slug', $slug)->get()->getRowArray();
+        $content = PublicContentUrls::resolveRef($ref);
         if (! is_array($content)) {
             return redirect()->to(site_url('Content/Public/Index'))->with('errors', ['content' => 'Content not found.']);
         }
         $content = $this->normalizeContentRow($content);
+
+        $canonical = PublicContentUrls::canonicalPostRedirectIfNeeded($content, $ref);
+        if ($canonical !== null) {
+            return redirect()->to($canonical);
+        }
 
         $current = $this->currentUser();
         $canManage = $current !== null && $this->canManageContent($current);
@@ -151,14 +169,10 @@ class PublicContent extends BaseController
             return redirect()->to(site_url('Content/Public/Index'))->with('errors', ['content' => 'Content not found.']);
         }
 
-        if (empty($content['show_in_nav'])) {
-            return redirect()->to(site_url('Content/Public/View/' . (int) $content['id']));
-        }
-
         return $this->renderContent($content, $canManage);
     }
 
-    public function edit(int $id): ResponseInterface|string
+    public function edit(string $ref): ResponseInterface|string
     {
         $disabled = $this->requirePublicContentEnabled();
         if ($disabled instanceof ResponseInterface) {
@@ -172,13 +186,27 @@ class PublicContent extends BaseController
 
         $this->ensureContentTable();
 
-        $content = $this->findContent($id);
+        $content = PublicContentUrls::resolveRef($ref);
         if (! is_array($content)) {
             return redirect()->to(site_url('Content/Public/Index'))->with('errors', ['content' => 'Content not found.']);
         }
+        $content = $this->normalizeContentRow($content);
+
+        $canonical = PublicContentUrls::canonicalEditRedirectIfNeeded($content, $ref);
+        if ($canonical !== null) {
+            return redirect()->to($canonical);
+        }
+
+        $postTitle = (string) ($content['title'] ?? 'Post');
 
         return view('content/public/form', [
-            'title'      => 'Edit Public Content',
+            'title'           => SitePageTitle::format('Blog', $postTitle, 'Edit Post'),
+            'pageHeading'     => SitePageTitle::trail('Blog', $postTitle, 'Edit Post'),
+            'breadcrumbItems' => SitePageTitle::breadcrumbs([
+                ['label' => 'Blog', 'url' => site_url('Content/Public/Index')],
+                ['label' => $postTitle, 'url' => PublicContentUrls::postUrl($content)],
+                ['label' => 'Edit Post'],
+            ]),
             'wideLayout' => true,
             'mode'       => 'edit',
             'content'    => $content,
@@ -186,7 +214,7 @@ class PublicContent extends BaseController
         ]);
     }
 
-    public function update(int $id): ResponseInterface
+    public function update(string $ref): ResponseInterface
     {
         $disabled = $this->requirePublicContentEnabled();
         if ($disabled instanceof ResponseInterface) {
@@ -200,10 +228,12 @@ class PublicContent extends BaseController
 
         $this->ensureContentTable();
 
-        $content = $this->findContent($id);
+        $content = PublicContentUrls::resolveRef($ref);
         if (! is_array($content)) {
             return redirect()->to(site_url('Content/Public/Index'))->with('errors', ['content' => 'Content not found.']);
         }
+        $content = $this->normalizeContentRow($content);
+        $id = (int) ($content['id'] ?? 0);
 
         $data = $this->contentPayload($current, $id);
         if ($data instanceof ResponseInterface) {
@@ -213,10 +243,12 @@ class PublicContent extends BaseController
         $data['updated_at'] = date('Y-m-d H:i:s');
         AppDatabase::connection()->table('public_contents')->where('id', $id)->update($data);
 
-        return redirect()->to($this->contentViewUrl($data, $id))->with('message', 'Public content updated.');
+        $updated = $this->findContent($id);
+
+        return redirect()->to(PublicContentUrls::postUrl(is_array($updated) ? $updated : array_merge($content, $data)))->with('message', 'Public content updated.');
     }
 
-    public function confirmDelete(int $id): ResponseInterface|string
+    public function confirmDelete(string $ref): ResponseInterface|string
     {
         $disabled = $this->requirePublicContentEnabled();
         if ($disabled instanceof ResponseInterface) {
@@ -230,20 +262,34 @@ class PublicContent extends BaseController
 
         $this->ensureContentTable();
 
-        $content = $this->findContent($id);
+        $content = PublicContentUrls::resolveRef($ref);
         if (! is_array($content)) {
             return redirect()->to(site_url('Content/Public/Index'))->with('errors', ['content' => 'Content not found.']);
         }
+        $content = $this->normalizeContentRow($content);
+
+        $canonical = PublicContentUrls::canonicalDeleteRedirectIfNeeded($content, $ref);
+        if ($canonical !== null) {
+            return redirect()->to($canonical);
+        }
+
+        $postTitle = (string) ($content['title'] ?? 'Post');
 
         return view('content/public/delete', [
-            'title'      => 'Delete Public Content',
+            'title'           => SitePageTitle::format('Blog', $postTitle, 'Delete Post'),
+            'pageHeading'     => SitePageTitle::trail('Blog', $postTitle, 'Delete Post'),
+            'breadcrumbItems' => SitePageTitle::breadcrumbs([
+                ['label' => 'Blog', 'url' => site_url('Content/Public/Index')],
+                ['label' => $postTitle, 'url' => PublicContentUrls::postUrl($content)],
+                ['label' => 'Delete Post'],
+            ]),
             'wideLayout' => true,
             'content'    => $content,
             'errors'     => $this->flashErrors(),
         ]);
     }
 
-    public function delete(int $id): ResponseInterface
+    public function delete(string $ref): ResponseInterface
     {
         $disabled = $this->requirePublicContentEnabled();
         if ($disabled instanceof ResponseInterface) {
@@ -257,11 +303,12 @@ class PublicContent extends BaseController
 
         $this->ensureContentTable();
 
-        $content = $this->findContent($id);
+        $content = PublicContentUrls::resolveRef($ref);
         if (! is_array($content)) {
             return redirect()->to(site_url('Content/Public/Index'))->with('errors', ['content' => 'Content not found.']);
         }
 
+        $id = (int) ($content['id'] ?? 0);
         AppDatabase::connection()->table('public_contents')->where('id', $id)->delete();
 
         return redirect()->to(site_url('Content/Public/Index'))->with('message', 'Public content deleted.');
@@ -273,9 +320,9 @@ class PublicContent extends BaseController
     private function contentRows(bool $includeDrafts, int $limit, int $offset): array
     {
         $builder = $this->contentListBuilder($includeDrafts)
-            ->select('id, title, slug, summary, status, show_in_nav, nav_label, nav_order, author_id, published_at, created_at, updated_at')
-            ->orderBy('show_in_nav', 'DESC')
-            ->orderBy('nav_order', 'ASC')
+            ->select('id, c_id, title, slug, summary, body, status, show_in_nav, nav_label, nav_order, author_id, published_at, created_at, updated_at')
+            ->orderBy('published_at', 'DESC')
+            ->orderBy('created_at', 'DESC')
             ->orderBy('id', 'DESC')
             ->limit($limit, $offset);
 
@@ -353,11 +400,20 @@ class PublicContent extends BaseController
      */
     private function renderContent(array $content, bool $canManage): string
     {
+        $prepared = $this->prepareBlogPosts([$content])[0] ?? $content;
+
+        $postTitle = (string) ($content['title'] ?? 'Post');
+
         return view('content/public/detail', [
-            'title'      => (string) ($content['title'] ?? 'Public Content'),
+            'title'           => SitePageTitle::format('Blog', $postTitle),
+            'pageHeading'     => SitePageTitle::trail('Blog', $postTitle),
+            'breadcrumbItems' => SitePageTitle::breadcrumbs([
+                ['label' => 'Blog', 'url' => site_url('Content/Public/Index')],
+                ['label' => $postTitle],
+            ]),
             'wideLayout' => true,
-            'content'    => $content,
-            'bodyHtml'   => $this->renderedBodyHtml((string) ($content['body'] ?? '')),
+            'content'    => $prepared,
+            'bodyHtml'   => RichHtml::render((string) ($content['body'] ?? '')),
             'canManage'  => $canManage,
             'errors'     => $this->flashErrors(),
         ]);
@@ -368,15 +424,144 @@ class PublicContent extends BaseController
      */
     private function contentViewUrl(array $content, int $id): string
     {
-        if (! empty($content['show_in_nav'])) {
-            return site_url('Content/Public/View/' . (string) $content['slug']);
+        if ($id > 0 && ! isset($content['id'])) {
+            $content['id'] = $id;
         }
 
-        if ($id <= 0) {
-            return site_url('Content/Public/Index');
+        return PublicContentUrls::postUrl($content);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function prepareBlogPosts(array $rows): array
+    {
+        if ($rows === []) {
+            return [];
         }
 
-        return site_url('Content/Public/View/' . $id);
+        $rows = $this->withAuthorNames($rows);
+        foreach ($rows as &$row) {
+            $row['post_url'] = PublicContentUrls::postUrl($row);
+            $row['date_label'] = $this->formatBlogDate($row);
+            $row['excerpt_html'] = $this->excerptHtml($row);
+            $row['is_published'] = $this->isPublished($row);
+        }
+        unset($row);
+
+        return $rows;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function recentBlogPosts(bool $includeDrafts, int $limit): array
+    {
+        $rows = $this->contentListBuilder($includeDrafts)
+            ->select('id, c_id, title, slug, published_at, created_at, status')
+            ->orderBy('published_at', 'DESC')
+            ->orderBy('created_at', 'DESC')
+            ->orderBy('id', 'DESC')
+            ->limit($limit)
+            ->get()
+            ->getResultArray();
+
+        $posts = [];
+        foreach ($rows as $row) {
+            $row = $this->normalizeContentRow($row);
+            $row['post_url'] = PublicContentUrls::postUrl($row);
+            $row['date_label'] = $this->formatBlogDate($row);
+            $posts[] = $row;
+        }
+
+        return $posts;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function withAuthorNames(array $rows): array
+    {
+        $authorIds = [];
+        foreach ($rows as $row) {
+            $authorId = (int) ($row['author_id'] ?? 0);
+            if ($authorId > 0) {
+                $authorIds[$authorId] = $authorId;
+            }
+        }
+
+        $authors = [];
+        if ($authorIds !== []) {
+            foreach (AppDatabase::connection()->table('users')->select('id, username')->whereIn('id', array_values($authorIds))->get()->getResultArray() as $user) {
+                $authors[(int) ($user['id'] ?? 0)] = (string) ($user['username'] ?? 'Member');
+            }
+        }
+
+        foreach ($rows as &$row) {
+            $authorId = (int) ($row['author_id'] ?? 0);
+            $row['author_name'] = $authors[$authorId] ?? ($authorId > 0 ? 'User #' . $authorId : 'Unknown');
+        }
+        unset($row);
+
+        return $rows;
+    }
+
+    /**
+     * @param array<string, mixed> $content
+     */
+    private function formatBlogDate(array $content): string
+    {
+        $raw = trim((string) ($content['published_at'] ?? ''));
+        if ($raw === '') {
+            $raw = trim((string) ($content['created_at'] ?? ''));
+        }
+
+        if ($raw === '') {
+            return '';
+        }
+
+        $timestamp = strtotime($raw);
+
+        return $timestamp !== false ? date('F j, Y', $timestamp) : $raw;
+    }
+
+    /**
+     * @param array<string, mixed> $content
+     */
+    private function excerptHtml(array $content): string
+    {
+        $body = (string) ($content['body'] ?? '');
+        $summary = trim((string) ($content['summary'] ?? ''));
+
+        if ($summary !== '') {
+            return RichHtml::render($summary);
+        }
+
+        $moreMarkers = ['<!--more-->', '<!-- more -->', '[more]'];
+        foreach ($moreMarkers as $marker) {
+            $pos = stripos($body, $marker);
+            if ($pos !== false) {
+                $body = substr($body, 0, $pos);
+                break;
+            }
+        }
+
+        $plain = trim(strip_tags($body));
+        if ($plain === '') {
+            return '';
+        }
+
+        if (strlen($plain) > 360) {
+            $plain = rtrim(substr($plain, 0, 360));
+            $plain = preg_replace('/\s+\S*$/', '', $plain) ?: $plain;
+            $plain .= '…';
+        }
+
+        return '<p>' . nl2br(htmlspecialchars($plain, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), false) . '</p>';
     }
 
     /**
@@ -418,7 +603,7 @@ class PublicContent extends BaseController
             'title'        => $title,
             'slug'         => $this->uniqueSlug($slug, $ignoreId),
             'summary'      => trim((string) $this->request->getPost('summary')) ?: null,
-            'body'         => $this->sanitizePublicHtml((string) $this->request->getPost('body')),
+            'body'         => RichHtml::sanitize((string) $this->request->getPost('body')),
             'status'       => $status,
             'show_in_nav'  => $this->request->getPost('show_in_nav') !== null,
             'nav_label'    => trim((string) $this->request->getPost('nav_label')) ?: null,
@@ -488,150 +673,10 @@ class PublicContent extends BaseController
 
         return date('Y-m-d H:i:s', $timestamp);
     }
-
-    private function renderedBodyHtml(string $body): string
-    {
-        $body = trim($body);
-        if ($body === '') {
-            return '';
-        }
-
-        if ($body === strip_tags($body)) {
-            return $this->plainTextToHtml($body);
-        }
-
-        return $this->sanitizePublicHtml($body);
-    }
-
-    private function sanitizePublicHtml(string $html): string
-    {
-        $html = trim($html);
-        if ($html === '') {
-            return '';
-        }
-
-        if ($html === strip_tags($html)) {
-            return $this->plainTextToHtml($html);
-        }
-
-        $allowedTags = '<p><br><strong><b><em><i><u><s><h2><h3><h4><ul><ol><li><blockquote><pre><code><a><img><hr><div><span>';
-        $html = strip_tags($html, $allowedTags);
-
-        $previous = libxml_use_internal_errors(true);
-        $doc = new \DOMDocument('1.0', 'UTF-8');
-        $doc->loadHTML('<?xml encoding="UTF-8"><div id="public-content-fragment">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-        libxml_clear_errors();
-        libxml_use_internal_errors($previous);
-
-        $wrapper = $doc->getElementById('public-content-fragment');
-        if ($wrapper === null) {
-            return '';
-        }
-
-        foreach ($doc->getElementsByTagName('*') as $node) {
-            if (! $node instanceof \DOMElement || $node->getAttribute('id') === 'public-content-fragment') {
-                continue;
-            }
-
-            $this->sanitizeElementAttributes($node);
-        }
-
-        $output = '';
-        foreach ($wrapper->childNodes as $child) {
-            $output .= $doc->saveHTML($child);
-        }
-
-        return trim($output);
-    }
-
-    private function sanitizeElementAttributes(\DOMElement $node): void
-    {
-        $tag = strtolower($node->nodeName);
-        $allowed = match ($tag) {
-            'a'     => ['href', 'title', 'target', 'rel'],
-            'img'   => ['src', 'alt', 'title'],
-            'p', 'div', 'h2', 'h3', 'h4', 'blockquote' => ['style'],
-            default => [],
-        };
-
-        $remove = [];
-        foreach ($node->attributes as $attribute) {
-            $name = strtolower($attribute->nodeName);
-            if (! in_array($name, $allowed, true)) {
-                $remove[] = $attribute->nodeName;
-                continue;
-            }
-
-            $value = trim($attribute->nodeValue ?? '');
-            if (($name === 'href' || $name === 'src') && ! $this->isSafeContentUrl($value)) {
-                $remove[] = $attribute->nodeName;
-                continue;
-            }
-
-            if ($name === 'target' && ! in_array($value, ['_blank', '_self'], true)) {
-                $remove[] = $attribute->nodeName;
-                continue;
-            }
-
-            if ($name === 'style') {
-                $style = $this->sanitizeTextAlignStyle($value);
-                if ($style === '') {
-                    $remove[] = $attribute->nodeName;
-                } else {
-                    $node->setAttribute('style', $style);
-                }
-            }
-        }
-
-        foreach ($remove as $attributeName) {
-            $node->removeAttribute($attributeName);
-        }
-
-        if ($tag === 'a' && $node->getAttribute('target') === '_blank') {
-            $node->setAttribute('rel', 'noopener noreferrer');
-        }
-    }
-
-    private function sanitizeTextAlignStyle(string $style): string
-    {
-        if (preg_match('/(?:^|;)\s*text-align\s*:\s*(left|right|center|justify)\s*(?:;|$)/i', $style, $match) !== 1) {
-            return '';
-        }
-
-        return 'text-align: ' . strtolower($match[1]) . ';';
-    }
-
-    private function isSafeContentUrl(string $url): bool
-    {
-        if ($url === '' || str_starts_with($url, '//')) {
-            return false;
-        }
-
-        if (str_starts_with($url, '#') || str_starts_with($url, '/')) {
-            return true;
-        }
-
-        $scheme = parse_url($url, PHP_URL_SCHEME);
-        if ($scheme === null) {
-            return ! str_contains($url, ':');
-        }
-
-        return in_array(strtolower((string) $scheme), ['http', 'https', 'mailto'], true);
-    }
-
-    private function plainTextToHtml(string $text): string
-    {
-        $paragraphs = preg_split('/\R{2,}/', trim($text)) ?: [];
-        $html = [];
-        foreach ($paragraphs as $paragraph) {
-            $escaped = htmlspecialchars(trim($paragraph), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-            if ($escaped !== '') {
-                $html[] = '<p>' . nl2br($escaped, false) . '</p>';
-            }
-        }
-
-        return implode("\n", $html);
-    }
+
+
+
+
 
     /**
      * @return array<string, mixed>|ResponseInterface

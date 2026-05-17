@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS __DB_PREFIX__web_analytics (
   route_path VARCHAR(255) NOT NULL,
   request_method VARCHAR(12) NOT NULL,
   member_user_id INTEGER NULL,
+  visitor_type VARCHAR(12) NOT NULL DEFAULT 'guest',
   ip_address VARCHAR(45) NOT NULL DEFAULT '',
   user_agent VARCHAR(255) NOT NULL DEFAULT '',
   referrer VARCHAR(255) NOT NULL DEFAULT '',
@@ -12,3 +13,4 @@ CREATE TABLE IF NOT EXISTS __DB_PREFIX__web_analytics (
 
 CREATE INDEX IF NOT EXISTS __DB_PREFIX__web_analytics_occurred_idx ON __DB_PREFIX__web_analytics (occurred_at);
 CREATE INDEX IF NOT EXISTS __DB_PREFIX__web_analytics_route_idx ON __DB_PREFIX__web_analytics (route_path);
+CREATE INDEX IF NOT EXISTS __DB_PREFIX__web_analytics_visitor_idx ON __DB_PREFIX__web_analytics (visitor_type);

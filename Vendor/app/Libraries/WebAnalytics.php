@@ -11,6 +11,12 @@ use Throwable;
 
 final class WebAnalytics
 {
+    public const VISITOR_MEMBER = 'member';
+    public const VISITOR_GUEST = 'guest';
+    public const VISITOR_BOT = 'bot';
+
+    private const BOT_UA_PATTERN = '/(?:bot|crawl|spider|slurp|mediapartners|facebookexternalhit|whatsapp|telegram(?:bot)?|discordbot|curl\/|wget\/|python-requests|headless|phantomjs|selenium|pingdom|uptimerobot|googlebot|bingbot|yandexbot|baiduspider|duckduckbot|applebot|semrush|ahrefsbot|mj12bot|dotbot|petalbot|archive\.org|libwww|java\/|go-http|okhttp|scrapy|adsbot|twitterbot|linkedinbot|embedly|rogerbot|exabot|facebot|ia_archiver)/i';
+
     private static bool $ensured = false;
     private static bool $recorded = false;
 
@@ -22,8 +28,15 @@ final class WebAnalytics
 
         self::$recorded = true;
 
+        $userAgent = $this->stringLimit($this->serverValue($request, 'HTTP_USER_AGENT'), 255);
+        $memberUserId = $this->currentUserId();
+
+        if (self::classifyVisitor($memberUserId, $userAgent) === self::VISITOR_BOT) {
+            return;
+        }
+
         try {
-            if (! (new ModuleSettings())->isEnabled(ModuleSettings::WEB_ANALYTICS)) {
+            if (! ModuleSettings::isEnabledCached(ModuleSettings::WEB_ANALYTICS)) {
                 return;
             }
         } catch (Throwable) {
@@ -33,9 +46,10 @@ final class WebAnalytics
         $payload = [
             'route_path'     => $this->routePath($request),
             'request_method' => strtoupper((string) $request->getMethod()),
-            'member_user_id' => $this->currentUserId(),
+            'member_user_id' => $memberUserId,
+            'visitor_type'   => self::classifyVisitor($memberUserId, $userAgent),
             'ip_address'     => $this->stringLimit($this->requestIp($request), 45),
-            'user_agent'     => $this->stringLimit($this->serverValue($request, 'HTTP_USER_AGENT'), 255),
+            'user_agent'     => $userAgent,
             'referrer'       => $this->stringLimit($this->serverValue($request, 'HTTP_REFERER'), 255),
             'occurred_at'    => date('Y-m-d H:i:s'),
         ];
@@ -55,7 +69,14 @@ final class WebAnalytics
      */
     private function insertRowAfterResponse(array $row): void
     {
-        $this->ensureTable();
+        if (($row['visitor_type'] ?? '') === self::VISITOR_BOT) {
+            return;
+        }
+
+        if (! self::$ensured) {
+            $this->ensureTable();
+        }
+
         AppDatabase::connection()->table('web_analytics')->insert($row);
     }
 
@@ -63,7 +84,14 @@ final class WebAnalytics
      * @return array{
      *     days: int,
      *     totalViews: int,
+     *     humanViews: int,
+     *     memberViews: int,
+     *     guestViews: int,
+     *     botViews: int,
      *     uniqueVisitors: int,
+     *     uniqueMembers: int,
+     *     uniqueGuests: int,
+     *     uniqueBots: int,
      *     registeredViews: int,
      *     maxViews: int,
      *     daily: list<array{date: string, label: string, views: int}>,
@@ -98,8 +126,15 @@ final class WebAnalytics
 
             $totals = $this->aggregateDashboardTotals($db, $table, $driver, $startSql);
             $summary['totalViews'] = $totals['totalViews'];
-            $summary['registeredViews'] = $totals['registeredViews'];
-            $summary['uniqueVisitors'] = $this->aggregateDistinctVisitors($db, $table, $driver, $startSql);
+            $summary['humanViews'] = $totals['humanViews'];
+            $summary['memberViews'] = $totals['memberViews'];
+            $summary['guestViews'] = $totals['guestViews'];
+            $summary['botViews'] = $totals['botViews'];
+            $summary['registeredViews'] = $totals['memberViews'];
+            $summary['uniqueMembers'] = $this->aggregateDistinctByType($db, $table, $driver, $startSql, self::VISITOR_MEMBER);
+            $summary['uniqueGuests'] = $this->aggregateDistinctByType($db, $table, $driver, $startSql, self::VISITOR_GUEST);
+            $summary['uniqueBots'] = $this->aggregateDistinctByType($db, $table, $driver, $startSql, self::VISITOR_BOT);
+            $summary['uniqueVisitors'] = $summary['uniqueMembers'] + $summary['uniqueGuests'];
             $summary['maxViews'] = max(1, ...array_column($summary['daily'], 'views'));
             $summary['topPages'] = $this->aggregateTopPages($db, $table, $driver, $startSql, $topLimit);
 
@@ -114,6 +149,7 @@ final class WebAnalytics
      *     windowMinutes: int,
      *     guests: int,
      *     members: int,
+     *     bots: int,
      *     memberList: list<array<string, mixed>>
      * }
      */
@@ -125,6 +161,7 @@ final class WebAnalytics
             'windowMinutes' => $windowMinutes,
             'guests'        => 0,
             'members'       => 0,
+            'bots'          => 0,
             'memberList'    => [],
         ];
 
@@ -140,15 +177,22 @@ final class WebAnalytics
             $cutoff = (new DateTimeImmutable())->modify('-' . $windowMinutes . ' minutes')->format('Y-m-d H:i:s');
 
             $guestsSql = match ($driver) {
-                'Postgre' => "SELECT COUNT(DISTINCT ip_address)::int AS c FROM {$table} WHERE occurred_at >= ? AND (member_user_id IS NULL OR member_user_id = 0) AND ip_address <> ''",
-                default => "SELECT COUNT(DISTINCT ip_address) AS c FROM {$table} WHERE occurred_at >= ? AND (member_user_id IS NULL OR member_user_id = 0) AND ip_address <> ''",
+                'Postgre' => "SELECT COUNT(DISTINCT ip_address)::int AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'guest' AND ip_address <> ''",
+                default => "SELECT COUNT(DISTINCT ip_address) AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'guest' AND ip_address <> ''",
             };
             $guestRow = $db->query($guestsSql, [$cutoff])->getRowArray();
             $summary['guests'] = (int) ($guestRow['c'] ?? 0);
 
+            $botsSql = match ($driver) {
+                'Postgre' => "SELECT COUNT(DISTINCT ip_address)::int AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'bot' AND ip_address <> ''",
+                default => "SELECT COUNT(DISTINCT ip_address) AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'bot' AND ip_address <> ''",
+            };
+            $botRow = $db->query($botsSql, [$cutoff])->getRowArray();
+            $summary['bots'] = (int) ($botRow['c'] ?? 0);
+
             $membersSql = match ($driver) {
-                'Postgre' => "SELECT COUNT(DISTINCT member_user_id)::int AS c FROM {$table} WHERE occurred_at >= ? AND member_user_id IS NOT NULL AND member_user_id > 0",
-                default => "SELECT COUNT(DISTINCT member_user_id) AS c FROM {$table} WHERE occurred_at >= ? AND member_user_id IS NOT NULL AND member_user_id > 0",
+                'Postgre' => "SELECT COUNT(DISTINCT member_user_id)::int AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'member' AND member_user_id IS NOT NULL AND member_user_id > 0",
+                default => "SELECT COUNT(DISTINCT member_user_id) AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'member' AND member_user_id IS NOT NULL AND member_user_id > 0",
             };
             $memRow = $db->query($membersSql, [$cutoff])->getRowArray();
             $summary['members'] = (int) ($memRow['c'] ?? 0);
@@ -157,7 +201,7 @@ final class WebAnalytics
                 'Postgre' => "
                     SELECT member_user_id::int AS id
                     FROM {$table}
-                    WHERE occurred_at >= ? AND member_user_id IS NOT NULL AND member_user_id > 0
+                    WHERE occurred_at >= ? AND visitor_type = 'member' AND member_user_id IS NOT NULL AND member_user_id > 0
                     GROUP BY member_user_id
                     ORDER BY MAX(occurred_at) DESC
                     LIMIT {$memberLimit}
@@ -165,7 +209,7 @@ final class WebAnalytics
                 default => "
                     SELECT member_user_id AS id
                     FROM {$table}
-                    WHERE occurred_at >= ? AND member_user_id IS NOT NULL AND member_user_id > 0
+                    WHERE occurred_at >= ? AND visitor_type = 'member' AND member_user_id IS NOT NULL AND member_user_id > 0
                     GROUP BY member_user_id
                     ORDER BY MAX(occurred_at) DESC
                     LIMIT {$memberLimit}
@@ -201,7 +245,85 @@ final class WebAnalytics
             }
         }
 
+        $this->ensureVisitorTypeColumn($db);
+
         self::$ensured = true;
+    }
+
+    public static function classifyVisitor(?int $memberUserId, string $userAgent): string
+    {
+        if ($memberUserId !== null && $memberUserId > 0) {
+            return self::VISITOR_MEMBER;
+        }
+
+        return self::isBotUserAgent($userAgent) ? self::VISITOR_BOT : self::VISITOR_GUEST;
+    }
+
+    public static function isBotUserAgent(string $userAgent): bool
+    {
+        $userAgent = trim($userAgent);
+
+        if ($userAgent === '') {
+            return true;
+        }
+
+        return preg_match(self::BOT_UA_PATTERN, $userAgent) === 1;
+    }
+
+    private function ensureVisitorTypeColumn(BaseConnection $db): void
+    {
+        if ($db->fieldExists('visitor_type', 'web_analytics')) {
+            return;
+        }
+
+        $table = $this->quoteTable($db, (string) ($db->DBPrefix ?? '') . 'web_analytics');
+        $driver = (string) ($db->DBDriver ?? '');
+        $idxName = $this->quoteIdentifier($db, (string) ($db->DBPrefix ?? '') . 'web_analytics_visitor_idx');
+
+        if ($driver === 'Postgre') {
+            $db->simpleQuery('ALTER TABLE ' . $table . " ADD COLUMN visitor_type VARCHAR(12) NOT NULL DEFAULT 'guest'");
+            $db->simpleQuery('CREATE INDEX IF NOT EXISTS ' . $idxName . ' ON ' . $table . ' (visitor_type)');
+        } elseif ($driver === 'SQLite3') {
+            $db->simpleQuery('ALTER TABLE ' . $table . " ADD COLUMN visitor_type TEXT NOT NULL DEFAULT 'guest'");
+            $db->simpleQuery('CREATE INDEX IF NOT EXISTS ' . $idxName . ' ON ' . $table . ' (visitor_type)');
+        } else {
+            $db->simpleQuery('ALTER TABLE ' . $table . " ADD COLUMN `visitor_type` VARCHAR(12) NOT NULL DEFAULT 'guest'");
+            $db->simpleQuery('ALTER TABLE ' . $table . ' ADD KEY `web_analytics_visitor_idx` (`visitor_type`)');
+        }
+
+        $this->backfillVisitorTypes($db, $table, $driver);
+    }
+
+    private function backfillVisitorTypes(BaseConnection $db, string $table, string $driver): void
+    {
+        if ($driver === 'Postgre') {
+            $db->simpleQuery("UPDATE {$table} SET visitor_type = 'member' WHERE COALESCE(member_user_id, 0) > 0");
+        } elseif ($driver === 'SQLite3') {
+            $db->simpleQuery("UPDATE {$table} SET visitor_type = 'member' WHERE IFNULL(member_user_id, 0) > 0");
+        } else {
+            $db->simpleQuery("UPDATE {$table} SET visitor_type = 'member' WHERE member_user_id IS NOT NULL AND member_user_id > 0");
+        }
+
+        $likeClauses = [
+            "user_agent = ''",
+            "LOWER(user_agent) LIKE '%bot%'",
+            "LOWER(user_agent) LIKE '%crawl%'",
+            "LOWER(user_agent) LIKE '%spider%'",
+            "LOWER(user_agent) LIKE '%slurp%'",
+            "LOWER(user_agent) LIKE '%curl/%'",
+            "LOWER(user_agent) LIKE '%wget/%'",
+            "LOWER(user_agent) LIKE 'python-%'",
+            "LOWER(user_agent) LIKE '%googlebot%'",
+            "LOWER(user_agent) LIKE '%bingbot%'",
+        ];
+        $whereBots = implode(' OR ', $likeClauses);
+
+        $db->simpleQuery("UPDATE {$table} SET visitor_type = 'bot' WHERE visitor_type = 'guest' AND ({$whereBots})");
+    }
+
+    private function humanTrafficSql(): string
+    {
+        return "visitor_type IN ('guest', 'member')";
     }
 
     private function prefixedAnalyticsTable(BaseConnection $db): string
@@ -214,23 +336,25 @@ final class WebAnalytics
      */
     private function aggregateDashboardDaily(BaseConnection $db, string $table, string $driver, string $startSql): array
     {
+        $humanFilter = $this->humanTrafficSql();
+
         $sql = match ($driver) {
             'Postgre' => "
                 SELECT to_char(occurred_at, 'YYYY-MM-DD') AS day_key, COUNT(*)::int AS cnt
                 FROM {$table}
-                WHERE occurred_at >= ?
+                WHERE occurred_at >= ? AND {$humanFilter}
                 GROUP BY to_char(occurred_at, 'YYYY-MM-DD')
             ",
             'SQLite3' => "
                 SELECT strftime('%Y-%m-%d', occurred_at) AS day_key, COUNT(*) AS cnt
                 FROM {$table}
-                WHERE occurred_at >= ?
+                WHERE occurred_at >= ? AND {$humanFilter}
                 GROUP BY strftime('%Y-%m-%d', occurred_at)
             ",
             default => "
                 SELECT DATE(occurred_at) AS day_key, COUNT(*) AS cnt
                 FROM {$table}
-                WHERE occurred_at >= ?
+                WHERE occurred_at >= ? AND {$humanFilter}
                 GROUP BY DATE(occurred_at)
             ",
         };
@@ -247,64 +371,73 @@ final class WebAnalytics
     }
 
     /**
-     * @return array{totalViews: int, registeredViews: int}
+     * @return array{
+     *     totalViews: int,
+     *     humanViews: int,
+     *     memberViews: int,
+     *     guestViews: int,
+     *     botViews: int
+     * }
      */
     private function aggregateDashboardTotals(BaseConnection $db, string $table, string $driver, string $startSql): array
     {
-        $sumExpr = match ($driver) {
-            'Postgre' => 'COALESCE(SUM(CASE WHEN member_user_id IS NOT NULL AND member_user_id > 0 THEN 1 ELSE 0 END), 0)::int',
-            default => 'SUM(CASE WHEN member_user_id IS NOT NULL AND member_user_id > 0 THEN 1 ELSE 0 END)',
-        };
+        $sumCase = static fn (string $type): string => "CASE WHEN visitor_type = '{$type}' THEN 1 ELSE 0 END";
 
-        $sql = "
-            SELECT COUNT(*) AS total_views, {$sumExpr} AS registered_views
-            FROM {$table}
-            WHERE occurred_at >= ?
-        ";
+        if ($driver === 'Postgre') {
+            $sql = "
+                SELECT
+                    COUNT(*)::int AS total_views,
+                    COALESCE(SUM({$sumCase(self::VISITOR_MEMBER)}), 0)::int AS member_views,
+                    COALESCE(SUM({$sumCase(self::VISITOR_GUEST)}), 0)::int AS guest_views,
+                    COALESCE(SUM({$sumCase(self::VISITOR_BOT)}), 0)::int AS bot_views
+                FROM {$table}
+                WHERE occurred_at >= ?
+            ";
+        } else {
+            $sql = "
+                SELECT
+                    COUNT(*) AS total_views,
+                    SUM({$sumCase(self::VISITOR_MEMBER)}) AS member_views,
+                    SUM({$sumCase(self::VISITOR_GUEST)}) AS guest_views,
+                    SUM({$sumCase(self::VISITOR_BOT)}) AS bot_views
+                FROM {$table}
+                WHERE occurred_at >= ?
+            ";
+        }
 
         $row = $db->query($sql, [$startSql])->getRowArray() ?: [];
+        $memberViews = (int) ($row['member_views'] ?? 0);
+        $guestViews = (int) ($row['guest_views'] ?? 0);
 
         return [
-            'totalViews'      => (int) ($row['total_views'] ?? 0),
-            'registeredViews' => (int) ($row['registered_views'] ?? 0),
+            'totalViews'  => (int) ($row['total_views'] ?? 0),
+            'humanViews'  => $memberViews + $guestViews,
+            'memberViews' => $memberViews,
+            'guestViews'  => $guestViews,
+            'botViews'    => (int) ($row['bot_views'] ?? 0),
         ];
     }
 
-    private function aggregateDistinctVisitors(BaseConnection $db, string $table, string $driver, string $startSql): int
+    private function aggregateDistinctByType(BaseConnection $db, string $table, string $driver, string $startSql, string $visitorType): int
     {
-        $inner = match ($driver) {
-            'Postgre' => "
-                SELECT DISTINCT CASE
-                    WHEN COALESCE(member_user_id, 0) > 0 THEN 'u' || member_user_id::text
-                    ELSE 'i' || COALESCE(ip_address, '')
-                END AS vk
-                FROM {$table}
-                WHERE occurred_at >= ?
-            ",
-            'SQLite3' => "
-                SELECT DISTINCT CASE
-                    WHEN IFNULL(member_user_id, 0) > 0 THEN 'u' || CAST(member_user_id AS TEXT)
-                    ELSE 'i' || IFNULL(ip_address, '')
-                END AS vk
-                FROM {$table}
-                WHERE occurred_at >= ?
-            ",
-            default => "
-                SELECT DISTINCT CASE
-                    WHEN member_user_id IS NOT NULL AND member_user_id > 0 THEN CONCAT('u', CAST(member_user_id AS CHAR))
-                    ELSE CONCAT('i', IFNULL(ip_address, ''))
-                END AS vk
-                FROM {$table}
-                WHERE occurred_at >= ?
-            ",
-        };
+        if ($visitorType === self::VISITOR_MEMBER) {
+            $sql = match ($driver) {
+                'Postgre' => "SELECT COUNT(DISTINCT member_user_id)::int AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'member' AND COALESCE(member_user_id, 0) > 0",
+                default => "SELECT COUNT(DISTINCT member_user_id) AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'member' AND member_user_id IS NOT NULL AND member_user_id > 0",
+            };
+        } elseif ($visitorType === self::VISITOR_BOT) {
+            $sql = match ($driver) {
+                'Postgre' => "SELECT COUNT(DISTINCT ip_address)::int AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'bot' AND ip_address <> ''",
+                default => "SELECT COUNT(DISTINCT ip_address) AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'bot' AND ip_address <> ''",
+            };
+        } else {
+            $sql = match ($driver) {
+                'Postgre' => "SELECT COUNT(DISTINCT ip_address)::int AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'guest' AND ip_address <> ''",
+                default => "SELECT COUNT(DISTINCT ip_address) AS c FROM {$table} WHERE occurred_at >= ? AND visitor_type = 'guest' AND ip_address <> ''",
+            };
+        }
 
-        $countWrap = match ($driver) {
-            'Postgre' => "SELECT COUNT(*)::int AS c FROM ({$inner}) t",
-            default => "SELECT COUNT(*) AS c FROM ({$inner}) t",
-        };
-
-        $row = $db->query($countWrap, [$startSql])->getRowArray() ?: [];
+        $row = $db->query($sql, [$startSql])->getRowArray() ?: [];
 
         return (int) ($row['c'] ?? 0);
     }
@@ -320,10 +453,12 @@ final class WebAnalytics
             default => 'COUNT(*)',
         };
 
+        $humanFilter = $this->humanTrafficSql();
+
         $sql = "
             SELECT route_path, {$cntAlias} AS cnt
             FROM {$table}
-            WHERE occurred_at >= ?
+            WHERE occurred_at >= ? AND {$humanFilter}
             GROUP BY route_path
             ORDER BY cnt DESC
             LIMIT {$limit}
@@ -344,7 +479,14 @@ final class WebAnalytics
      * @return array{
      *     days: int,
      *     totalViews: int,
+     *     humanViews: int,
+     *     memberViews: int,
+     *     guestViews: int,
+     *     botViews: int,
      *     uniqueVisitors: int,
+     *     uniqueMembers: int,
+     *     uniqueGuests: int,
+     *     uniqueBots: int,
      *     registeredViews: int,
      *     maxViews: int,
      *     daily: list<array{date: string, label: string, views: int}>,
@@ -368,7 +510,14 @@ final class WebAnalytics
         return [
             'days'            => $days,
             'totalViews'      => 0,
+            'humanViews'      => 0,
+            'memberViews'     => 0,
+            'guestViews'      => 0,
+            'botViews'        => 0,
             'uniqueVisitors'  => 0,
+            'uniqueMembers'   => 0,
+            'uniqueGuests'    => 0,
+            'uniqueBots'      => 0,
             'registeredViews' => 0,
             'maxViews'        => 1,
             'daily'           => $daily,
@@ -391,6 +540,7 @@ final class WebAnalytics
                     route_path VARCHAR(255) NOT NULL,
                     request_method VARCHAR(12) NOT NULL,
                     member_user_id INTEGER NULL,
+                    visitor_type VARCHAR(12) NOT NULL DEFAULT \'guest\',
                     ip_address VARCHAR(45) NOT NULL DEFAULT \'\',
                     user_agent VARCHAR(255) NOT NULL DEFAULT \'\',
                     referrer VARCHAR(255) NOT NULL DEFAULT \'\',
@@ -398,6 +548,7 @@ final class WebAnalytics
                 )',
                 'CREATE INDEX IF NOT EXISTS ' . $this->quoteIdentifier($db, (string) ($db->DBPrefix ?? '') . 'web_analytics_occurred_idx') . ' ON ' . $table . ' (occurred_at)',
                 'CREATE INDEX IF NOT EXISTS ' . $this->quoteIdentifier($db, (string) ($db->DBPrefix ?? '') . 'web_analytics_route_idx') . ' ON ' . $table . ' (route_path)',
+                'CREATE INDEX IF NOT EXISTS ' . $this->quoteIdentifier($db, (string) ($db->DBPrefix ?? '') . 'web_analytics_visitor_idx') . ' ON ' . $table . ' (visitor_type)',
             ];
         }
 
@@ -408,6 +559,7 @@ final class WebAnalytics
                     route_path TEXT NOT NULL,
                     request_method TEXT NOT NULL,
                     member_user_id INTEGER NULL,
+                    visitor_type TEXT NOT NULL DEFAULT \'guest\',
                     ip_address TEXT NOT NULL DEFAULT \'\',
                     user_agent TEXT NOT NULL DEFAULT \'\',
                     referrer TEXT NOT NULL DEFAULT \'\',
@@ -415,6 +567,7 @@ final class WebAnalytics
                 )',
                 'CREATE INDEX IF NOT EXISTS ' . $this->quoteIdentifier($db, (string) ($db->DBPrefix ?? '') . 'web_analytics_occurred_idx') . ' ON ' . $table . ' (occurred_at)',
                 'CREATE INDEX IF NOT EXISTS ' . $this->quoteIdentifier($db, (string) ($db->DBPrefix ?? '') . 'web_analytics_route_idx') . ' ON ' . $table . ' (route_path)',
+                'CREATE INDEX IF NOT EXISTS ' . $this->quoteIdentifier($db, (string) ($db->DBPrefix ?? '') . 'web_analytics_visitor_idx') . ' ON ' . $table . ' (visitor_type)',
             ];
         }
 
@@ -424,13 +577,15 @@ final class WebAnalytics
                 `route_path` VARCHAR(255) NOT NULL,
                 `request_method` VARCHAR(12) NOT NULL,
                 `member_user_id` INT UNSIGNED NULL,
+                `visitor_type` VARCHAR(12) NOT NULL DEFAULT \'guest\',
                 `ip_address` VARCHAR(45) NOT NULL DEFAULT \'\',
                 `user_agent` VARCHAR(255) NOT NULL DEFAULT \'\',
                 `referrer` VARCHAR(255) NOT NULL DEFAULT \'\',
                 `occurred_at` DATETIME NOT NULL,
                 PRIMARY KEY (`id`),
                 KEY `web_analytics_occurred_idx` (`occurred_at`),
-                KEY `web_analytics_route_idx` (`route_path`)
+                KEY `web_analytics_route_idx` (`route_path`),
+                KEY `web_analytics_visitor_idx` (`visitor_type`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci',
         ];
     }

@@ -244,6 +244,19 @@ final class RoleService
         return $this->hasLevelAtLeast($slug, self::ADMINISTRATOR);
     }
 
+    public function isOwner(string $slug): bool
+    {
+        return strtolower(trim($slug)) === self::OWNER;
+    }
+
+    /**
+     * Owner, Administrator, and Manager accounts may create and manage community categories/forums.
+     */
+    public function canManageCommunityCategories(string $slug): bool
+    {
+        return in_array(strtolower(trim($slug)), [self::OWNER, self::ADMINISTRATOR, 'manager'], true);
+    }
+
     public function hasLevelAtLeast(string $slug, string $requiredSlug): bool
     {
         $role = $this->findRole($slug);

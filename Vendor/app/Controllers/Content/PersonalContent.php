@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Controllers\Content;
 
+use App\Libraries\RichHtml;
+
 use App\Controllers\BaseController;
 use App\Libraries\AppDatabase;
 use App\Libraries\ModuleSettings;
 use App\Libraries\RoleService;
+use App\Libraries\MemberProfileUrls;
 use App\Libraries\SecurityCangService;
+use App\Libraries\SitePageTitle;
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -60,7 +64,7 @@ class PersonalContent extends BaseController
         ];
 
         return view('content/personal/index', [
-            'title'        => $mailboxTitles[$mailbox],
+            'title'        => SitePageTitle::format('Personal', $mailboxTitles[$mailbox]),
             'wideLayout'   => true,
             'messages'     => $this->messageRows($canManageAll, $current, self::MESSAGES_PER_PAGE, ($page - 1) * self::MESSAGES_PER_PAGE, $mailbox),
             'current'      => $current,
@@ -91,11 +95,16 @@ class PersonalContent extends BaseController
 
         $this->ensureMessageTable();
         $recipientOptions = $this->recipientOptions((int) ($current['id'] ?? 0));
-        $selectedRecipientId = (int) ($this->request->getGet('recipient_id') ?? 0);
+        $recipientGet = $this->request->getGet('recipient_id');
+        $selectedRecipientId = 0;
+        if ($recipientGet !== null && trim((string) $recipientGet) !== '') {
+            $recipientUser = MemberProfileUrls::resolveUserRef((string) $recipientGet);
+            $selectedRecipientId = is_array($recipientUser) ? (int) ($recipientUser['id'] ?? 0) : 0;
+        }
         if (! array_key_exists($selectedRecipientId, $recipientOptions)) {
-            if ($this->canManageAll($current) && $this->request->getGet('recipient_id') === null) {
+            if ($this->canManageAll($current) && $recipientGet === null) {
                 return view('content/personal/form', [
-                    'title'              => 'Create Bulk Personal Message',
+                    'title'              => SitePageTitle::format('Personal', 'Create Bulk Message'),
                     'wideLayout'         => true,
                     'mode'               => 'create',
                     'message'            => [],
@@ -109,12 +118,14 @@ class PersonalContent extends BaseController
             return redirect()->to(site_url('Member/List'))->with('errors', ['recipient' => 'Choose a member from the list before creating a personal message.']);
         }
         $recipientOptions = [$selectedRecipientId => $recipientOptions[$selectedRecipientId]];
+        $recipientUser = MemberProfileUrls::resolveUserRef((string) $recipientGet);
 
         return view('content/personal/form', [
-            'title'            => 'Create Personal Message',
+            'title'            => SitePageTitle::format('Personal', 'Create Message'),
             'wideLayout'       => true,
             'mode'             => 'create',
             'message'          => ['recipient_id' => $selectedRecipientId],
+            'recipientUser'    => $recipientUser,
             'recipientOptions' => $recipientOptions,
             'bulkMode'         => false,
             'errors'           => $this->flashErrors(),
@@ -186,7 +197,7 @@ class PersonalContent extends BaseController
         $now = date('Y-m-d H:i:s');
         $base = [
             'subject'    => trim((string) $this->request->getPost('subject')),
-            'body'       => $this->sanitizeMessageHtml((string) $this->request->getPost('body')),
+            'body'       => RichHtml::sanitize((string) $this->request->getPost('body')),
             'sender_id'  => (int) ($current['id'] ?? 0),
             'status'     => 'sent',
             'created_at' => $now,
@@ -225,12 +236,13 @@ class PersonalContent extends BaseController
         }
 
         return view('content/personal/detail', [
-            'title'     => (string) ($message['subject'] ?? 'Personal Message'),
-            'message'   => $this->decorateMessages([$message])[0],
-            'bodyHtml'  => $this->renderedBodyHtml((string) ($message['body'] ?? '')),
-            'canEdit'   => $this->canEditMessage($message, $current),
-            'canDelete' => $this->canDeleteMessage($message, $current),
-            'errors'    => $this->flashErrors(),
+            'title'      => SitePageTitle::format('Personal', (string) ($message['subject'] ?? 'Message')),
+            'wideLayout' => true,
+            'message'    => $this->decorateMessages([$message])[0],
+            'bodyHtml'   => RichHtml::render((string) ($message['body'] ?? '')),
+            'canEdit'    => $this->canEditMessage($message, $current),
+            'canDelete'  => $this->canDeleteMessage($message, $current),
+            'errors'     => $this->flashErrors(),
         ]);
     }
 
@@ -254,7 +266,7 @@ class PersonalContent extends BaseController
         }
 
         return view('content/personal/form', [
-            'title'            => 'Edit Personal Message',
+            'title'            => SitePageTitle::format('Personal', 'Edit Message'),
             'wideLayout'       => true,
             'mode'             => 'edit',
             'message'          => $message,
@@ -314,7 +326,7 @@ class PersonalContent extends BaseController
         }
 
         return view('content/personal/delete', [
-            'title'   => 'Delete Personal Message',
+            'title'   => SitePageTitle::format('Personal', 'Delete Message'),
             'message' => $this->decorateMessages([$message])[0],
             'errors'  => $this->flashErrors(),
         ]);
@@ -555,7 +567,7 @@ class PersonalContent extends BaseController
 
         $data = [
             'subject'     => trim((string) $this->request->getPost('subject')),
-            'body'        => $this->sanitizeMessageHtml((string) $this->request->getPost('body')),
+            'body'        => RichHtml::sanitize((string) $this->request->getPost('body')),
             'sender_id'   => $currentId,
             'recipient_id'=> $recipientId,
             'status'      => 'sent',
@@ -654,50 +666,9 @@ class PersonalContent extends BaseController
     {
         return $this->canViewMessage($message, $current);
     }
-
-    private function renderedBodyHtml(string $body): string
-    {
-        $body = trim($body);
-        if ($body === '') {
-            return '';
-        }
-
-        if ($body === strip_tags($body)) {
-            return $this->plainTextToHtml($body);
-        }
-
-        return $this->sanitizeMessageHtml($body);
-    }
-
-    private function sanitizeMessageHtml(string $html): string
-    {
-        $html = trim($html);
-        if ($html === '') {
-            return '';
-        }
-
-        if ($html === strip_tags($html)) {
-            return $this->plainTextToHtml($html);
-        }
-
-        $allowedTags = '<p><br><strong><b><em><i><u><s><h2><h3><h4><ul><ol><li><blockquote><pre><code><a><img><hr><div><span>';
-
-        return trim(strip_tags($html, $allowedTags));
-    }
-
-    private function plainTextToHtml(string $text): string
-    {
-        $paragraphs = preg_split('/\R{2,}/', trim($text)) ?: [];
-        $html = [];
-        foreach ($paragraphs as $paragraph) {
-            $escaped = htmlspecialchars(trim($paragraph), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-            if ($escaped !== '') {
-                $html[] = '<p>' . nl2br($escaped, false) . '</p>';
-            }
-        }
-
-        return implode("\n", $html);
-    }
+
+
+
 
     private function ensureMessageTable(): void
     {

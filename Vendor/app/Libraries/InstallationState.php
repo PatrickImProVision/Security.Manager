@@ -16,13 +16,16 @@ final class InstallationState
         return WRITEPATH . self::RELATIVE_FLAG_PATH;
     }
 
+    private static ?bool $installedCache = null;
+
     public static function isInstalled(): bool
     {
-        return is_file(self::flagPath());
+        return self::$installedCache ??= is_file(self::flagPath());
     }
 
     public static function markInstalled(): void
     {
+        self::$installedCache = null;
         $path = self::flagPath();
         $dir   = dirname($path);
         if (! is_dir($dir)) {
@@ -40,10 +43,13 @@ final class InstallationState
             ),
             LOCK_EX,
         );
+
+        self::$installedCache = true;
     }
 
     public static function clearFlag(): void
     {
+        self::$installedCache = null;
         if (is_file(self::flagPath())) {
             unlink(self::flagPath());
         }

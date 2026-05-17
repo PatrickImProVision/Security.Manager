@@ -7,6 +7,12 @@ CREATE TABLE IF NOT EXISTS `__DB_PREFIX__community_contents` (
   `body` MEDIUMTEXT NOT NULL,
   `status` VARCHAR(20) NOT NULL DEFAULT 'published',
   `author_id` INT UNSIGNED NULL DEFAULT NULL,
+  `parent_id` INT UNSIGNED NULL DEFAULT NULL,
+  `is_locked` TINYINT(1) NOT NULL DEFAULT 0,
+  `is_sticky` TINYINT(1) NOT NULL DEFAULT 0,
+  `view_count` INT UNSIGNED NOT NULL DEFAULT 0,
+  `last_reply_at` DATETIME NULL DEFAULT NULL,
+  `last_reply_user_id` INT UNSIGNED NULL DEFAULT NULL,
   `created_at` DATETIME NOT NULL,
   `updated_at` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -14,5 +20,7 @@ CREATE TABLE IF NOT EXISTS `__DB_PREFIX__community_contents` (
   KEY `__DB_PREFIX__community_contents_category_idx` (`category`),
   KEY `__DB_PREFIX__community_contents_status_idx` (`status`),
   KEY `__DB_PREFIX__community_contents_author_idx` (`author_id`),
-  KEY `__DB_PREFIX__community_contents_created_idx` (`created_at`)
+  KEY `__DB_PREFIX__community_contents_created_idx` (`created_at`),
+  KEY `__DB_PREFIX__community_contents_parent_idx` (`parent_id`),
+  KEY `__DB_PREFIX__community_contents_last_reply_idx` (`last_reply_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

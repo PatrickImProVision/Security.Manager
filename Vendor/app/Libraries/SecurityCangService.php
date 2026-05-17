@@ -12,6 +12,7 @@ final class SecurityCangService
     public const PASSWORD_ID = 'password_id';
     public const PUBLIC_CONTENT_URL_ID = 'public_content_url_id';
     public const COMMUNITY_CONTENT_URL_ID = 'community_content_url_id';
+    public const COMMUNITY_CATEGORY_URL_ID = 'community_category_url_id';
     public const PERSONAL_CONTENT_URL_ID = 'personal_content_url_id';
     public const PRODUCT_KEY_ID = 'product_key_id';
 
@@ -132,6 +133,13 @@ final class SecurityCangService
             'code_length'     => 12,
             'generation_mode' => 'random',
         ],
+        self::COMMUNITY_CATEGORY_URL_ID => [
+            'label'           => 'Community Category Url.Id',
+            'description'     => 'Community forum/category URL identifier.',
+            'language_id'     => 8,
+            'code_length'     => 12,
+            'generation_mode' => 'random',
+        ],
         self::PERSONAL_CONTENT_URL_ID => [
             'label'           => 'Personal Content Url.Id',
             'description'     => 'Personal content/message URL identifier.',
@@ -157,6 +165,7 @@ final class SecurityCangService
         self::USER_URL_ID => ['users', 'c_id'],
         self::PUBLIC_CONTENT_URL_ID => ['public_contents', 'c_id'],
         self::COMMUNITY_CONTENT_URL_ID => ['community_contents', 'c_id'],
+        self::COMMUNITY_CATEGORY_URL_ID => ['community_categories', 'c_id'],
         self::PERSONAL_CONTENT_URL_ID => ['personal_messages', 'c_id'],
     ];
 
@@ -290,6 +299,63 @@ final class SecurityCangService
         }
 
         return $out;
+    }
+
+    public function isPasswordProposalAvailable(): bool
+    {
+        if (! $this->securityManagerEnabled()) {
+            return false;
+        }
+
+        $profile = $this->profileByTargetKey(self::PASSWORD_ID);
+
+        return is_array($profile) && $this->booleanField($profile['is_active'] ?? false);
+    }
+
+    /**
+     * Suggests one password using the active Password.Id CANG profile (read-only; does not persist).
+     *
+     * @return array{password: string, profile_label: string, language_name: string, note: string}|null
+     */
+    public function proposePasswordSample(int $minLength = 8): ?array
+    {
+        if (! $this->isPasswordProposalAvailable()) {
+            return null;
+        }
+
+        $profile = $this->profileByTargetKey(self::PASSWORD_ID);
+        if ($profile === null) {
+            return null;
+        }
+
+        $minLength = max(8, min($minLength, 200));
+        $languageId = (int) ($profile['language_id'] ?? 7);
+        $codeLength = max(1, min(128, (int) ($profile['code_length'] ?? 12)));
+        $mode = (string) ($profile['generation_mode'] ?? 'random');
+        $splitBy = self::normalizeSplitBy((string) ($profile['split_by'] ?? ''));
+        $splitLength = self::normalizeSplitLength((int) ($profile['split_length'] ?? 0));
+        $sequenceBase = (int) ($profile['sequence_value'] ?? 0);
+        $language = self::LANGUAGES[$languageId] ?? self::LANGUAGES[7];
+
+        for ($attempt = 0; $attempt < 16; $attempt++) {
+            $samples = $this->previewSamples($languageId, $codeLength, $mode, 1, $sequenceBase, $splitBy, $splitLength);
+            $password = (string) ($samples[0] ?? '');
+            if ($password !== '' && strlen($password) >= $minLength && strlen($password) <= 200) {
+                $note = 'Generated from the CANG Password.Id profile. You can edit it before saving.';
+                if ($mode === 'sequential') {
+                    $note .= ' Sequential preview only — the profile counter is not advanced until an ID is issued elsewhere.';
+                }
+
+                return [
+                    'password'       => $password,
+                    'profile_label'  => (string) ($profile['label'] ?? 'Password.Id'),
+                    'language_name'  => (string) ($language['name'] ?? ''),
+                    'note'           => $note,
+                ];
+            }
+        }
+
+        return null;
     }
 
     /** @return list<array<string, mixed>> */
@@ -673,6 +739,7 @@ final class SecurityCangService
             self::USER_URL_ID => 'users',
             self::PUBLIC_CONTENT_URL_ID => 'public_contents',
             self::COMMUNITY_CONTENT_URL_ID => 'community_contents',
+            self::COMMUNITY_CATEGORY_URL_ID => 'community_categories',
             self::PERSONAL_CONTENT_URL_ID => 'personal_messages',
         ];
 
@@ -789,6 +856,7 @@ final class SecurityCangService
             self::USER_URL_ID => 'Public user URL identifier',
             self::PUBLIC_CONTENT_URL_ID => 'Public content URL identifier',
             self::COMMUNITY_CONTENT_URL_ID => 'Community content URL identifier',
+            self::COMMUNITY_CATEGORY_URL_ID => 'Community forum/category URL identifier',
             self::PERSONAL_CONTENT_URL_ID => 'Personal message URL identifier',
             default => 'Stored public identifier',
         };

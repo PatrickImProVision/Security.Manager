@@ -46,6 +46,8 @@ final class ModuleSettings
     /** @var array<string, array<string, mixed>>|null */
     private static ?array $moduleCache = null;
 
+    private static bool $tableReady = false;
+
     /**
      * @return list<array<string, mixed>>
      */
@@ -70,13 +72,21 @@ final class ModuleSettings
 
     public function isEnabled(string $moduleKey): bool
     {
-        foreach ($this->contentModules() as $module) {
-            if ((string) $module['module_key'] === $moduleKey) {
-                return $this->booleanField($module['is_enabled'] ?? false);
-            }
+        return self::isEnabledCached($moduleKey);
+    }
+
+    public static function isEnabledCached(string $moduleKey): bool
+    {
+        if (! array_key_exists($moduleKey, self::DEFAULT_MODULES)) {
+            return false;
         }
 
-        return false;
+        $rows = (new self())->loadRows();
+        if (isset($rows[$moduleKey])) {
+            return (new self())->booleanField($rows[$moduleKey]['is_enabled'] ?? false);
+        }
+
+        return (bool) (self::DEFAULT_MODULES[$moduleKey]['is_enabled'] ?? false);
     }
 
     /**
@@ -98,10 +108,16 @@ final class ModuleSettings
         }
 
         self::$moduleCache = null;
+        self::$tableReady = false;
+        SiteLayoutData::clearCache();
     }
 
     private function ensureModuleSettings(): void
     {
+        if (self::$tableReady) {
+            return;
+        }
+
         $db = AppDatabase::connection();
         if (! $db->tableExists('module_settings')) {
             foreach ($this->moduleTableSql($db) as $sql) {
@@ -112,6 +128,8 @@ final class ModuleSettings
         if (! $db->tableExists('module_settings')) {
             return;
         }
+
+        self::$tableReady = true;
 
         $existing = [];
         foreach ($db->table('module_settings')->select('module_key')->get()->getResultArray() as $row) {
@@ -143,15 +161,19 @@ final class ModuleSettings
             return self::$moduleCache;
         }
 
+        $this->ensureModuleSettings();
+
         self::$moduleCache = [];
-        foreach (
-            AppDatabase::connection()
-                ->table('module_settings')
-                ->select('module_key, label, description, is_enabled')
-                ->get()
-                ->getResultArray() as $row
-        ) {
-            self::$moduleCache[(string) ($row['module_key'] ?? '')] = $row;
+        if (self::$tableReady) {
+            foreach (
+                AppDatabase::connection()
+                    ->table('module_settings')
+                    ->select('module_key, label, description, is_enabled')
+                    ->get()
+                    ->getResultArray() as $row
+            ) {
+                self::$moduleCache[(string) ($row['module_key'] ?? '')] = $row;
+            }
         }
 
         return self::$moduleCache;

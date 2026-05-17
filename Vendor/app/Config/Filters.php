@@ -15,6 +15,18 @@ use CodeIgniter\Filters\SecureHeaders;
 
 class Filters extends BaseFilters
 {
+    public function __construct()
+    {
+        parent::__construct();
+
+        if (! (defined('CI_DEBUG') && CI_DEBUG)) {
+            $this->required['after'] = array_values(array_filter(
+                $this->required['after'],
+                static fn (string $filter): bool => $filter !== 'toolbar',
+            ));
+        }
+    }
+
     /**
      * Configures aliases for Filter classes to
      * make reading things nicer and simpler.

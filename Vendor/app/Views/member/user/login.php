@@ -5,6 +5,17 @@
 
 <?= $this->include('member/user/_flash') ?>
 
+<?php if (! empty($activationUrl)) : ?>
+    <div class="card activation-pending">
+        <h2>Activate your account</h2>
+        <p class="hint">Your registration is saved. Use this link to activate before you can log in.</p>
+        <div class="actions">
+            <a class="btn btn-primary" href="<?= esc($activationUrl) ?>">Activate account</a>
+        </div>
+        <p class="activation-link-url"><code><?= esc($activationUrl) ?></code></p>
+    </div>
+<?php endif ?>
+
 <form method="post" action="<?= esc(site_url('Member/User/Login')) ?>" class="card">
     <?= csrf_field() ?>
     <label for="login">Username or e-mail</label>

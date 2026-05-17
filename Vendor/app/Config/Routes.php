@@ -42,6 +42,9 @@ $routes->group('Member/User', ['namespace' => 'App\Controllers\Member'], static 
     $routes->post('Login', 'User::authenticate');
     $routes->get('ForgotPassword', 'User::forgotPassword');
     $routes->post('ForgotPassword', 'User::sendForgotPassword');
+    $routes->post('ResetPassword/Propose/(:segment)', 'User::proposeResetPassword/$1');
+    $routes->get('ResetPassword/(:segment)', 'User::resetPassword/$1');
+    $routes->post('ResetPassword/(:segment)', 'User::submitResetPassword/$1');
     $routes->get('Activate/(:segment)', 'User::activate/$1');
     $routes->get('Edit/(:num)', 'User::edit/$1');
     $routes->post('Edit/(:num)', 'User::update/$1');
@@ -59,6 +62,8 @@ $routes->group('Member/User', ['namespace' => 'App\Controllers\Member'], static 
     $routes->post('Logout', 'User::logout');
 });
 
+$routes->post('Content/Wysiwyg/UploadImage', 'Wysiwyg::uploadImage');
+
 $routes->group('Content', ['namespace' => 'App\Controllers\Content'], static function (RouteCollection $routes): void {
     $routes->get('Public', static fn () => redirect()->to(site_url('Content/Public/Index')));
     $routes->get('Public/Index', 'PublicContent::index');
@@ -66,22 +71,29 @@ $routes->group('Content', ['namespace' => 'App\Controllers\Content'], static fun
     $routes->post('Public/Create', 'PublicContent::store');
     $routes->get('Public/View/(:num)', 'PublicContent::view/$1');
     $routes->get('Public/View/(:segment)', 'PublicContent::viewSlug/$1');
-    $routes->get('Public/Edit/(:num)', 'PublicContent::edit/$1');
-    $routes->post('Public/Edit/(:num)', 'PublicContent::update/$1');
-    $routes->get('Public/Delete/(:num)', 'PublicContent::confirmDelete/$1');
-    $routes->post('Public/Delete/(:num)', 'PublicContent::delete/$1');
+    $routes->get('Public/Edit/(:segment)', 'PublicContent::edit/$1');
+    $routes->post('Public/Edit/(:segment)', 'PublicContent::update/$1');
+    $routes->get('Public/Delete/(:segment)', 'PublicContent::confirmDelete/$1');
+    $routes->post('Public/Delete/(:segment)', 'PublicContent::delete/$1');
     $routes->get('Public/(:segment)', 'PublicContent::viewSlug/$1');
     $routes->get('Community', static fn () => redirect()->to(site_url('Content/Community/Index')));
     $routes->get('Community/Index', 'CommunityContent::index');
+    $routes->get('Community/Forum/(:segment)', 'CommunityContent::forum/$1');
     $routes->get('Community/Create', 'CommunityContent::create');
     $routes->post('Community/Create', 'CommunityContent::store');
-    $routes->get('Community/View/(:num)', 'CommunityContent::view/$1');
-    $routes->get('Community/Edit/(:num)', 'CommunityContent::edit/$1');
-    $routes->post('Community/Edit/(:num)', 'CommunityContent::update/$1');
-    $routes->get('Community/Delete/(:num)', 'CommunityContent::confirmDelete/$1');
-    $routes->post('Community/Delete/(:num)', 'CommunityContent::delete/$1');
+    $routes->get('Community/Topic/(:segment)', 'CommunityContent::topic/$1');
+    $routes->post('Community/Topic/(:segment)/Reply', 'CommunityContent::storeReply/$1');
+    $routes->post('Community/Topic/(:segment)/Lock', 'CommunityContent::toggleLock/$1');
+    $routes->post('Community/Topic/(:segment)/Sticky', 'CommunityContent::toggleSticky/$1');
+    $routes->get('Community/View/(:segment)', 'CommunityContent::view/$1');
+    $routes->get('Community/Edit/(:segment)', 'CommunityContent::edit/$1');
+    $routes->post('Community/Edit/(:segment)', 'CommunityContent::update/$1');
+    $routes->get('Community/Delete/(:segment)', 'CommunityContent::confirmDelete/$1');
+    $routes->post('Community/Delete/(:segment)', 'CommunityContent::delete/$1');
     $routes->get('Community/Categories', static fn () => redirect()->to(site_url('Content/Community/Categories/Index')));
     $routes->get('Community/Categories/Index', 'CommunityContent::categories');
+    $routes->get('Community/Categories/Create', 'CommunityContent::createCategory');
+    $routes->get('Community/Categories/Edit/(:num)', 'CommunityContent::editCategory/$1');
     $routes->post('Community/Categories/Save', 'CommunityContent::saveCategory');
     $routes->post('Community/Categories/Delete/(:num)', 'CommunityContent::deleteCategory/$1');
     $routes->get('Personal', static fn () => redirect()->to(site_url('Content/Personal/Index')));
@@ -105,6 +117,8 @@ $routes->post('DashBoard/ContentModules', 'DashBoard::saveContentModules');
 $routes->get('DashBoard/WebSettings', static fn () => redirect()->to(site_url('DashBoard/WebSettings/Index')));
 $routes->get('DashBoard/WebSettings/Index', 'DashBoard::webSettings');
 $routes->post('DashBoard/WebSettings', 'DashBoard::saveWebSettings');
+$routes->get('DashBoard/SEO_Settings', 'DashBoard::seoSettings');
+$routes->post('DashBoard/SEO_Settings', 'DashBoard::saveSeoSettings');
 $routes->get('DashBoard/SecurityManager', static fn () => redirect()->to(site_url('DashBoard/SecurityManager/Index')));
 $routes->get('DashBoard/SecurityManager/Index', 'DashBoard::securityManager');
 $routes->get('DashBoard/SecurityManager/CANG', static fn () => redirect()->to(site_url('DashBoard/SecurityManager/CANG/Index')));

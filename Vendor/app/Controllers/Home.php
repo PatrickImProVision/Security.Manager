@@ -3,8 +3,11 @@
 namespace App\Controllers;
 
 use App\Libraries\AppDatabase;
+use App\Libraries\CommunityContentUrls;
+use App\Libraries\PublicContentUrls;
 use App\Libraries\InstallationState;
 use App\Libraries\ModuleSettings;
+use App\Libraries\SitePageTitle;
 use App\Libraries\WebAnalytics;
 use App\Libraries\WebSettings;
 use Throwable;
@@ -26,7 +29,9 @@ class Home extends BaseController
         $webSettings = (new WebSettings())->homeSettings();
 
         return view('welcome_message', [
-            'title'                 => $webSettings['web_name'],
+            'title'                 => SitePageTitle::format('Home'),
+            'pageHeading'           => SitePageTitle::trail('Home'),
+            'breadcrumbItems'       => SitePageTitle::breadcrumbs([['label' => 'Home']]),
             'wideLayout'            => true,
             'lightPage'             => true,
             'webName'               => $webSettings['web_name'],
@@ -86,11 +91,16 @@ class Home extends BaseController
         try {
             $rows = AppDatabase::connection()
                 ->table('public_contents')
-                ->select('id, title, slug, summary, nav_label, show_in_nav, nav_order, published_at')
+                ->select('id, c_id, title, slug, summary, nav_label, show_in_nav, nav_order, published_at')
                 ->where('status', 'published')
-                ->where('show_in_nav', true)
+                ->groupStart()
+                    ->where('published_at', null)
+                    ->orWhere('published_at <=', date('Y-m-d H:i:s'))
+                ->groupEnd()
+                ->orderBy('show_in_nav', 'DESC')
                 ->orderBy('nav_order', 'ASC')
-                ->orderBy('title', 'ASC')
+                ->orderBy('published_at', 'DESC')
+                ->orderBy('created_at', 'DESC')
                 ->limit(4)
                 ->get()
                 ->getResultArray();
@@ -99,9 +109,8 @@ class Home extends BaseController
         }
 
         foreach ($rows as &$row) {
-            $slug = (string) ($row['slug'] ?? '');
             $row['label'] = trim((string) ($row['nav_label'] ?? '')) ?: (string) ($row['title'] ?? 'Public Page');
-            $row['url'] = site_url('Content/Public/View/' . ($slug !== '' ? $slug : (int) ($row['id'] ?? 0)));
+            $row['url'] = PublicContentUrls::postUrl($row);
         }
         unset($row);
 
@@ -120,10 +129,15 @@ class Home extends BaseController
         try {
             $rows = AppDatabase::connection()
                 ->table('community_contents')
-                ->select('id, title, category, author_id, created_at')
+                ->select('id, c_id, title, category, author_id, created_at')
                 ->where('status', 'published')
+                ->groupStart()
+                    ->where('parent_id', null)
+                    ->orWhere('parent_id', 0)
+                ->groupEnd()
+                ->orderBy('last_reply_at', 'DESC')
                 ->orderBy('created_at', 'DESC')
-                ->limit(5)
+                ->limit(4)
                 ->get()
                 ->getResultArray();
         } catch (Throwable) {
@@ -194,7 +208,7 @@ class Home extends BaseController
         foreach ($rows as &$row) {
             $authorId = (int) ($row['author_id'] ?? 0);
             $row['author_name'] = $authors[$authorId] ?? 'Unknown';
-            $row['url'] = site_url('Content/Community/View/' . (int) ($row['id'] ?? 0));
+            $row['url'] = CommunityContentUrls::topicUrl($row);
         }
         unset($row);
 

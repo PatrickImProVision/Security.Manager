@@ -6,6 +6,8 @@ namespace App\Controllers;
 
 use App\Libraries\ModuleSettings;
 use App\Libraries\SecurityCangService;
+use App\Libraries\SeoSettings;
+use App\Libraries\SitePageTitle;
 use App\Libraries\WebAnalytics;
 use App\Libraries\WebSettings;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -27,7 +29,8 @@ class DashBoard extends BaseController
         $analyticsEnabled = $moduleSettings->isEnabled(ModuleSettings::WEB_ANALYTICS);
 
         return view('dashboard/index', [
-            'title'            => 'Dashboard',
+            'title'            => SitePageTitle::format('Dashboard'),
+            'pageHeading'      => SitePageTitle::trail('Dashboard'),
             'wideLayout'       => true,
             'contentModules'   => $contentModules,
             'analyticsEnabled' => $analyticsEnabled,
@@ -47,7 +50,8 @@ class DashBoard extends BaseController
         }
 
         return view('dashboard/module_manager', [
-            'title'                   => 'Module Manager',
+            'title'                   => SitePageTitle::format('Dashboard', 'Module Manager'),
+            'pageHeading'             => SitePageTitle::trail('Dashboard', 'Module Manager'),
             'wideLayout'              => true,
             'canManageContentModules' => true,
             'contentModules'          => (new ModuleSettings())->contentModules(),
@@ -85,7 +89,8 @@ class DashBoard extends BaseController
         }
 
         return view('dashboard/web_settings', [
-            'title'          => 'Web Settings',
+            'title'          => SitePageTitle::format('Dashboard', 'Web Settings'),
+            'pageHeading'    => SitePageTitle::trail('Dashboard', 'Web Settings'),
             'wideLayout'     => true,
             'contentModules' => (new ModuleSettings())->contentModules(),
             'webSettings'    => (new WebSettings())->homeSettings(),
@@ -115,6 +120,45 @@ class DashBoard extends BaseController
         return redirect()->to(site_url('DashBoard/WebSettings/Index'))->with('message', 'Web settings updated.');
     }
 
+    public function seoSettings(): string|ResponseInterface
+    {
+        $guard = $this->requireManager('Only Administrator, Manager, or Owner accounts can manage SEO settings.');
+        if ($guard instanceof ResponseInterface) {
+            return $guard;
+        }
+
+        return view('dashboard/seo_settings', [
+            'title'          => SitePageTitle::format('Dashboard', 'SEO Settings'),
+            'pageHeading'    => SitePageTitle::trail('Dashboard', 'SEO Settings'),
+            'wideLayout'     => true,
+            'contentModules' => (new ModuleSettings())->contentModules(),
+            'seoSettings'    => (new SeoSettings())->mainSettings(),
+        ]);
+    }
+
+    public function saveSeoSettings(): ResponseInterface
+    {
+        $guard = $this->requireManager('Only Administrator, Manager, or Owner accounts can manage SEO settings.');
+        if ($guard instanceof ResponseInterface) {
+            return $guard;
+        }
+
+        try {
+            (new SeoSettings())->saveMainSettings([
+                SeoSettings::META_TITLE       => (string) $this->request->getPost('seo_meta_title'),
+                SeoSettings::META_DESCRIPTION => (string) $this->request->getPost('seo_meta_description'),
+                SeoSettings::META_KEYWORDS    => (string) $this->request->getPost('seo_meta_keywords'),
+                SeoSettings::CANONICAL_URL    => (string) $this->request->getPost('seo_canonical_url'),
+                SeoSettings::ROBOTS           => (string) $this->request->getPost('seo_robots'),
+                SeoSettings::OG_IMAGE         => (string) $this->request->getPost('seo_og_image'),
+            ]);
+        } catch (\InvalidArgumentException $exception) {
+            return redirect()->back()->withInput()->with('errors', ['seo_settings' => $exception->getMessage()]);
+        }
+
+        return redirect()->to(site_url('DashBoard/SEO_Settings'))->with('message', 'SEO settings updated.');
+    }
+
     public function securityManager(): string|ResponseInterface
     {
         $guard = $this->requireSecurityManager('Only Administrator, Manager, or Owner accounts can access Security Manager.');
@@ -125,7 +169,8 @@ class DashBoard extends BaseController
         (new SecurityCangService())->ensureApplicationCangColumns();
 
         return view('dashboard/security_manager', [
-            'title'          => 'Security Manager',
+            'title'          => SitePageTitle::format('Dashboard', 'Security Manager'),
+            'pageHeading'    => SitePageTitle::trail('Dashboard', 'Security Manager'),
             'wideLayout'     => true,
             'contentModules' => (new ModuleSettings())->contentModules(),
         ]);
@@ -142,7 +187,8 @@ class DashBoard extends BaseController
         $service->ensureApplicationCangColumns();
 
         return view('dashboard/security_cang_profiles', [
-            'title'          => 'CANG Profiles',
+            'title'          => SitePageTitle::format('Dashboard', 'Security Manager', 'CANG Profiles'),
+            'pageHeading'    => SitePageTitle::trail('Dashboard', 'Security Manager', 'CANG Profiles'),
             'wideLayout'     => true,
             'contentModules' => (new ModuleSettings())->contentModules(),
             'profiles'       => $service->profiles(),
@@ -163,7 +209,8 @@ class DashBoard extends BaseController
         }
 
         return view('dashboard/security_cang_profile_form', [
-            'title'          => 'Edit CANG Profile',
+            'title'          => SitePageTitle::format('Dashboard', 'Security Manager', 'Edit CANG Profile'),
+            'pageHeading'    => SitePageTitle::trail('Dashboard', 'Security Manager', 'Edit CANG Profile'),
             'wideLayout'     => true,
             'contentModules' => (new ModuleSettings())->contentModules(),
             'profile'        => $profile,

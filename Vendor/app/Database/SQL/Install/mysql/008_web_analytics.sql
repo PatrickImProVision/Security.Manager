@@ -4,11 +4,13 @@ CREATE TABLE IF NOT EXISTS `__DB_PREFIX__web_analytics` (
   `route_path` VARCHAR(255) NOT NULL,
   `request_method` VARCHAR(12) NOT NULL,
   `member_user_id` INT UNSIGNED NULL,
+  `visitor_type` VARCHAR(12) NOT NULL DEFAULT 'guest',
   `ip_address` VARCHAR(45) NOT NULL DEFAULT '',
   `user_agent` VARCHAR(255) NOT NULL DEFAULT '',
   `referrer` VARCHAR(255) NOT NULL DEFAULT '',
   `occurred_at` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   KEY `__DB_PREFIX__web_analytics_occurred_idx` (`occurred_at`),
-  KEY `__DB_PREFIX__web_analytics_route_idx` (`route_path`)
+  KEY `__DB_PREFIX__web_analytics_route_idx` (`route_path`),
+  KEY `__DB_PREFIX__web_analytics_visitor_idx` (`visitor_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

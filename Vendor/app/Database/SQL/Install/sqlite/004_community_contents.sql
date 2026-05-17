@@ -7,6 +7,12 @@ CREATE TABLE IF NOT EXISTS __DB_PREFIX__community_contents (
   body TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'published',
   author_id INTEGER,
+  parent_id INTEGER,
+  is_locked INTEGER NOT NULL DEFAULT 0,
+  is_sticky INTEGER NOT NULL DEFAULT 0,
+  view_count INTEGER NOT NULL DEFAULT 0,
+  last_reply_at TEXT,
+  last_reply_user_id INTEGER,
   created_at TEXT NOT NULL,
   updated_at TEXT
 );
@@ -15,3 +21,5 @@ CREATE INDEX IF NOT EXISTS __DB_PREFIX__community_contents_category_idx ON __DB_
 CREATE INDEX IF NOT EXISTS __DB_PREFIX__community_contents_status_idx ON __DB_PREFIX__community_contents (status);
 CREATE INDEX IF NOT EXISTS __DB_PREFIX__community_contents_author_idx ON __DB_PREFIX__community_contents (author_id);
 CREATE INDEX IF NOT EXISTS __DB_PREFIX__community_contents_created_idx ON __DB_PREFIX__community_contents (created_at);
+CREATE INDEX IF NOT EXISTS __DB_PREFIX__community_contents_parent_idx ON __DB_PREFIX__community_contents (parent_id);
+CREATE INDEX IF NOT EXISTS __DB_PREFIX__community_contents_last_reply_idx ON __DB_PREFIX__community_contents (last_reply_at);

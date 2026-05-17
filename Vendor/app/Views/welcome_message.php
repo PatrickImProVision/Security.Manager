@@ -26,7 +26,7 @@ $onlineSummary = is_array($onlineSummary ?? null) ? $onlineSummary : null;
 <section class="home-grid">
     <article class="card home-card">
         <div class="home-card-head">
-            <h2>Featured Public Pages</h2>
+            <h2>Latest Public Posts</h2>
             <?php if ($publicContentEnabled) : ?>
                 <a href="<?= esc(site_url('Content/Public/Index')) ?>">View All</a>
             <?php endif ?>
@@ -34,7 +34,7 @@ $onlineSummary = is_array($onlineSummary ?? null) ? $onlineSummary : null;
         <?php if (! $publicContentEnabled) : ?>
             <p class="hint">Public content is disabled in Module Manager.</p>
         <?php elseif (empty($featuredPages)) : ?>
-            <p class="hint">No featured public pages are available yet.</p>
+            <p class="hint">No published blog posts yet. Publish a post from Public Content to show it here.</p>
         <?php else : ?>
             <div class="home-link-list">
                 <?php foreach ($featuredPages as $page) : ?>
@@ -89,6 +89,7 @@ $onlineSummary = is_array($onlineSummary ?? null) ? $onlineSummary : null;
             <div class="home-stat-row">
                 <div class="home-stat"><span>Guests</span><strong><?= esc(number_format((int) ($onlineSummary['guests'] ?? 0))) ?></strong></div>
                 <div class="home-stat"><span>Members</span><strong><?= esc(number_format((int) ($onlineSummary['members'] ?? 0))) ?></strong></div>
+                <div class="home-stat"><span>Bots</span><strong><?= esc(number_format((int) ($onlineSummary['bots'] ?? 0))) ?></strong></div>
             </div>
             <p class="hint">Active in the last <?= esc((string) ($onlineSummary['windowMinutes'] ?? 10)) ?> minutes.</p>
             <?php if (! empty($onlineSummary['memberList'])) : ?>
